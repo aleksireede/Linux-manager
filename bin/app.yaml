@@ -891,6 +891,11 @@
   category: System utils
   conflicts: []
   fedora_app_name: ripgrep
+- name: rust
+  description: Default description for rust
+  source: pacman
+  category: System utils
+  conflicts: []
 - name: samba
   description: Default description for samba
   source: pacman
