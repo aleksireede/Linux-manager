@@ -17,11 +17,31 @@ def command_exists(command):
     return shutil.which(command) is not None
 
 
+def package_manager():
+    """Return the supported system package manager, preferring Arch when present."""
+    if command_exists("pacman"):
+        return "pacman"
+    if command_exists("dnf"):
+        return "dnf"
+    return None
+
+
 def detect_install_method(app_name):
     """
     Decide how the app should be installed.
     Returns: "pacman", "paru" or None
     """
+
+    manager = package_manager()
+    if manager == "dnf":
+        try:
+            subprocess.run(["dnf", "info", "--available", app_name], stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL, check=True)
+            return "pacman"  # Keep the catalog source stable; app_install maps it to dnf.
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return None
+    if manager != "pacman":
+        return None
 
     # Check official repos
     try:
@@ -32,7 +52,7 @@ def detect_install_method(app_name):
             check=True
         )
         return "pacman"
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
     # Check AUR via paru
@@ -45,7 +65,7 @@ def detect_install_method(app_name):
                 check=True
             )
             return "paru"
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             pass
     return None
 
@@ -63,6 +83,13 @@ def get_install_method_from_source(source):
 
 def detect_installed_method(app_name):
     """Best-effort detection of how an installed app should be removed."""
+    if package_manager() == "dnf":
+        try:
+            subprocess.run(["rpm", "-q", app_name], stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL, check=True)
+            return "pacman"  # Catalog/UI legacy name, executed as dnf below.
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return None
     try:
         subprocess.run(
             ["pacman", "-Qm", app_name],
@@ -71,7 +98,7 @@ def detect_installed_method(app_name):
             check=True
         )
         return "paru" if command_exists("paru") else "pacman"
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
     try:
@@ -82,7 +109,7 @@ def detect_installed_method(app_name):
             check=True
         )
         return "pacman"
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 
@@ -113,11 +140,18 @@ def list_apps(method: str):
 
 def is_app_installed(app_name):
     """Check if an app is installed using pacman or paru."""
+    if package_manager() == "dnf":
+        try:
+            subprocess.run(["rpm", "-q", app_name], stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL, check=True)
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return False
     try:
         subprocess.run(["pacman", "-Q", app_name],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         return True
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
     if command_exists("paru"):
@@ -125,7 +159,7 @@ def is_app_installed(app_name):
             subprocess.run(["paru", "-Q", app_name],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             return True
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             pass
     return False
 
@@ -227,6 +261,8 @@ def app_install(apps, command: str):
         install_command= ["paru", "-S", "--skipreview", "--needed", "--quiet", "--color", "always"]
         return apps_helper(apps, install_command)
     elif command == "pacman":
+        if package_manager() == "dnf":
+            return apps_helper(apps, ["sudo", "dnf", "install", "-y"])
         install_command = ["sudo", "pacman", "-S", "--needed", "--quiet", "--color", "always"]
         return apps_helper(apps, install_command)
     return None
@@ -236,8 +272,11 @@ def remove_apps(apps, command: str):
     if command == "paru":
         remove_command.append("paru")
     elif command == "pacman":
-        remove_command.append("sudo")
-        remove_command.append("pacman")
+        if package_manager() == "dnf":
+            remove_command.extend(["sudo", "dnf", "remove", "-y"])
+            return apps_helper(apps, remove_command)
+        remove_command.extend(["sudo", "pacman", "-Rns", "--color", "always"])
+        return apps_helper(apps, remove_command)
     remove_command.extend(["-Rns", "--color", "always"])
     return apps_helper(apps, remove_command)
 

@@ -13,9 +13,19 @@ USER_NAME="${SUDO_USER:-$USER}"
 USER_HOME="$(getent passwd "$USER_NAME" | cut -d: -f6)"
 LATEST_RELEASE_API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
 
-sudo pacman -S --needed --noconfirm \
-  python python-pip python-pyqt5 python-pyqt6 \
-  qt5-base qt5-xcb-private-headers libxcb gnome-console git curl
+if command -v pacman >/dev/null 2>&1
+then
+    sudo pacman -S --needed --noconfirm \
+    python python-pip python-pyqt5 python-pyqt6 \
+    qt5-base qt5-xcb-private-headers libxcb gnome-console git curl
+
+elif command -v dnf >/dev/null 2>&1
+then
+    sudo dnf install -y \
+    python3 python3-pip python3-qt5 \
+    qt5-qtbase qt5-qtx11extras libxcb-devel gnome-terminal git \
+    curl
+fi
 
 echo "Checking installation directory..."
 if [[ -d "$INSTALL_DIR/.git" ]]; then

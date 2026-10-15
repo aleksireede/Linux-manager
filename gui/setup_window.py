@@ -27,11 +27,7 @@ except ImportError:
 
 def gpu_driver_installed():
     vendor = detect_gpu_vendor()
-    mesa_installed = subprocess.run(
-        ["pacman", "-Q", "mesa"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    ).returncode == 0
+    mesa_installed = is_mesa_installed()
     if vendor == "AMD":
         return mesa_installed
     if vendor == "Intel":
@@ -40,6 +36,22 @@ def gpu_driver_installed():
         return shutil.which("nvidia-modprobe") is not None
     return False
 
+def is_mesa_installed():
+    """Check if the Mesa package is installed on the system."""
+    if shutil.which("pacman"):
+        command = ["pacman", "-Q", "mesa"]
+    elif shutil.which("dnf"):
+        command = ["dnf", "list", "installed", "mesa"]
+    else:
+        return False
+
+    result = subprocess.run(
+        command,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    return result.returncode == 0
 
 class UpdateCheckWorker(QObject):
     finished = pyqtSignal(str, bool, str, str)
