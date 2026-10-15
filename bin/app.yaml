@@ -1,850 +1,1062 @@
 - name: 7zip
+  title: 7-Zip
   description: Default description for 7zip
   source: Unknown
   category: System utils
   conflicts: []
+  fedora_app_name: 7zip
 - name: alsa-plugins
   description: Default description for alsa-plugins
   source: Unknown
   category: System utils
   conflicts: []
+  fedora_app_name: alsa-plugins-pulseaudio
 - name: amd-ucode
   description: Default description for amd-ucode
   source: Unknown
   category: AMD
   conflicts: []
+  fedora_app_name: microcode_ctl
 - name: ananicy-cpp
   description: Default description for ananicy-cpp
   source: Unknown
   category: Utilities
   conflicts: []
+  fedora_app_name: ananicy-cpp
 - name: android-udev
   description: Default description for android-udev
   source: pacman
   category: Utilities
   conflicts: []
+  fedora_app_name: android-tools
 - name: aocc
   description: Default description for aocc
   source: Unknown
   category: AMD
   conflicts: []
+  fedora_app_name: aocc
 - name: aocl-aocc
   description: Default description for aocl-aocc
   source: Unknown
   category: AMD
   conflicts: []
+  fedora_app_name: aocl-aocc
 - name: apple-fonts
   description: Default description for apple-fonts
   source: Unknown
   category: Fonts
   conflicts: []
+  fedora_app_name: null
 - name: ark
   description: Default description for ark
   source: pacman
   category: System utils
   conflicts: []
+  fedora_app_name: ark
 - name: awesome-terminal-fonts
   description: Default description for awesome-terminal-fonts
   source: Unknown
   category: Fonts
   conflicts: []
+  fedora_app_name: null
 - name: balena-etcher
   description: Default description for balena-etcher
   source: pacman
   category: Utilities
   conflicts: []
+  fedora_app_name: balena-etcher
 - name: base-devel
   description: Default description for base-devel
   source: pacman
   category: System utils
   conflicts: []
+  fedora_app_name: '@development-tools'
 - name: bind
   description: Default description for bind
   source: Unknown
   category: System utils
   conflicts: []
+  fedora_app_name: bind-utils
 - name: binwalk
   description: Default description for binwalk
   source: Unknown
   category: System utils
   conflicts: []
+  fedora_app_name: binwalk
 - name: bluedevil
   description: Default description for bluedevil
   source: pacman
   category: System utils
   conflicts: []
+  fedora_app_name: bluedevil
 - name: bluez
   description: Default description for bluez
   source: pacman
   category: System utils
   conflicts: []
+  fedora_app_name: bluez
 - name: bluez-utils
   description: Default description for bluez-utils
   source: pacman
   category: System utils
   conflicts: []
-- name: cowsay-bin
-  description: Default description for cowsay-bin
-  source: paru
-  category: System utils
-  conflicts: []
-- name: dolphin
-  description: Default description for dolphin
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: dolphin-emu
-  description: Default description for dolphin-emu
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: dolphin-plugins
-  description: Default description for dolphin-plugins
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: dos2unix
-  description: Default description for dos2unix
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: dosfstools
-  description: Default description for dosfstools
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: efibootmgr
-  description: Default description for efibootmgr
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: epic-games-launcher-bin
-  description: Default description for epic-games-launcher-bin
-  source: paru
-  category: Utilities
-  conflicts: []
-- name: expac
-  description: Default description for expac
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: eza
-  description: Default description for eza
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: fastfetch
-  description: Default description for fastfetch
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: faudio
-  description: Default description for faudio
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: fd
-  description: Default description for fd
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: ffmpeg
-  description: Default description for ffmpeg
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: ffmpegthumbs
-  description: Default description for ffmpegthumbs
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: fontconfig
-  description: Default description for fontconfig
-  source: Unknown
-  category: Fonts
-  conflicts: []
-- name: fortune-mod
-  description: Default description for fortune-mod
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: gamemode
-  description: Default description for gamemode
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: ghex
-  description: Default description for ghex
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: giflib
-  description: Default description for giflib
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: gimp
-  description: Default description for gimp
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: git
-  description: Default description for git
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: glfw
-  description: Default description for glfw
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: glow
-  description: Default description for glow
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: goverlay
-  description: Default description for goverlay
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: gstreamer
-  description: Default description for gstreamer
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: i2c-tools
-  description: Default description for i2c-tools
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: imagemagick
-  description: Default description for imagemagick
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: irqbalance
-  description: Default description for irqbalance
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: jdk-openjdk
-  description: Default description for jdk-openjdk
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: kcalc
-  description: Default description for kcalc
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kde-gtk-config
-  description: Default description for kde-gtk-config
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kdegraphics-thumbnailers
-  description: Default description for kdegraphics-thumbnailers
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: keepassxc
-  description: Default description for keepassxc
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: kimageformats
-  description: Default description for kimageformats
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kio-admin
-  description: Default description for kio-admin
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kio-extras
-  description: Default description for kio-extras
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kio-fuse
-  description: Default description for kio-fuse
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: konsole
-  description: Default description for konsole
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: kscreen
-  description: Default description for kscreen
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kwallet
-  description: Default description for kwallet
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kwallet-pam
-  description: Default description for kwallet-pam
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: kwalletmanager
-  description: Default description for kwalletmanager
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: less
-  description: Default description for less
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: lib32-alsa-plugins
-  description: Default description for lib32-alsa-plugins
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-fontconfig
-  description: Default description for lib32-fontconfig
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-gamemode
-  description: Default description for lib32-gamemode
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-giflib
-  description: Default description for lib32-giflib
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-gst-plugins-base
-  description: Default description for lib32-gst-plugins-base
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-gst-plugins-base-libs
-  description: Default description for lib32-gst-plugins-base-libs
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-gst-plugins-good
-  description: Default description for lib32-gst-plugins-good
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-gstreamer
-  description: Default description for lib32-gstreamer
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-libdecor
-  description: Default description for lib32-libdecor
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-libjpeg-turbo
-  description: Default description for lib32-libjpeg-turbo
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-mangohud
-  description: Default description for lib32-mangohud
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-mesa
-  description: Default description for lib32-mesa
-  source: pacman
-  category: AMD
-  conflicts: []
-- name: lib32-mpg123
-  description: Default description for lib32-mpg123
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-openal
-  description: Default description for lib32-openal
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-pipewire
-  description: Default description for lib32-pipewire
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-pipewire-jack
-  description: Default description for lib32-pipewire-jack
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lib32-vulkan-radeon
-  description: Default description for lib32-vulkan-radeon
-  source: pacman
-  category: AMD
-  conflicts: []
-- name: libjpeg-turbo
-  description: Default description for libjpeg-turbo
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: libreoffice-fresh
-  description: Default description for libreoffice-fresh
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: linux-firmware-amdgpu
-  description: Default description for linux-firmware-amdgpu
-  source: Unknown
-  category: AMD
-  conflicts: []
-- name: linux-zen
-  description: Default description for linux-zen
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: linux-zen-headers
-  description: Default description for linux-zen-headers
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lm_sensors
-  description: Default description for lm_sensors
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: localsend-bin
-  description: Default description for localsend-bin
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: lolcat
-  description: Default description for lolcat
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: lsp-plugins
-  description: Default description for lsp-plugins
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: lutris
-  description: Default description for lutris
-  source: pacman
-  category: Games
-  conflicts: []
-- name: makemkv
-  description: Default description for makemkv
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: makepkg-optimize-mold
-  description: Default description for makepkg-optimize-mold
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: mangohud
-  description: Default description for mangohud
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: maven
-  description: Default description for maven
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: memavaild
-  description: Default description for memavaild
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: mesa
-  description: Default description for mesa
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: mesa-utils
-  description: Default description for mesa-utils
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: mission-center
-  description: Default description for mission-center
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: nmap
-  description: Default description for nmap
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: nodejs
-  description: Default description for nodejs
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: noto-fonts
-  description: Default description for noto-fonts
-  source: Unknown
-  category: Fonts
-  conflicts: []
-- name: noto-fonts-cjk
-  description: Default description for noto-fonts-cjk
-  source: Unknown
-  category: Fonts
-  conflicts: []
-- name: noto-fonts-extra
-  description: Default description for noto-fonts-extra
-  source: Unknown
-  category: Fonts
-  conflicts: []
-- name: npm
-  description: Default description for npm
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: ntfs-3g
-  description: Default description for ntfs-3g
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: ntfsprogs
-  description: Default description for ntfsprogs
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: ocs-url
-  description: Default description for ocs-url
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: okular
-  description: Default description for okular
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: openal
-  description: Default description for openal
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: partitionmanager
-  description: Default description for partitionmanager
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: pipewire
-  description: Default description for pipewire
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: pipewire-alsa
-  description: Default description for pipewire-alsa
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: pipewire-audio
-  description: Default description for pipewire-audio
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: pipewire-jack
-  description: Default description for pipewire-jack
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: pipewire-pulse
-  description: Default description for pipewire-pulse
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: pipewire-v4l2
-  description: Default description for pipewire-v4l2
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: pipewire-zeroconf
-  description: Default description for pipewire-zeroconf
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: plasma-desktop
-  description: Default description for plasma-desktop
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: plasma-nm
-  description: Default description for plasma-nm
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: plasma-pa
-  description: Default description for plasma-pa
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: plasma-wallpaper-waywallen
-  description: Default description for plasma-wallpaper-waywallen
-  source: paru
-  category: KDE
-  conflicts: []
-- name: plasma-workspace
-  description: Default description for plasma-workspace
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: plymouth-kcm
-  description: Default description for plymouth-kcm
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: png2svg
-  description: Default description for png2svg
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: power-profiles-daemon
-  description: Default description for power-profiles-daemon
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: preload
-  description: Default description for preload
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: prismlauncher
-  description: Default description for prismlauncher
-  source: pacman
-  category: Games
-  conflicts: []
-- name: protonplus
-  description: Default description for protonplus
-  source: paru
-  category: Utilities
-  conflicts: []
-- name: protontricks
-  description: Default description for protontricks
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: pwvucontrol
-  description: Default description for pwvucontrol
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: python-pip
-  description: Default description for python-pip
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: python-pyqt5
-  description: Default description for python-pyqt5
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: python-pyqt6
-  description: Default description for python-pyqt6
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: python-setuptools
-  description: Default description for python-setuptools
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: qbittorrent
-  description: Default description for qbittorrent
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: qt6-multimedia
-  description: Default description for qt6-multimedia
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: rclone-browser
-  description: Default description for rclone-browser
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: refind
-  description: Default description for refind
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: reflector
-  description: Default description for reflector
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: ripgrep
-  description: Default description for ripgrep
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: samba
-  description: Default description for samba
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: sbctl
-  description: Default description for sbctl
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: scx-scheds
-  description: Default description for scx-scheds
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: sddm
-  description: Default description for sddm
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: sddm-kcm
-  description: Default description for sddm-kcm
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: spectacle
-  description: Default description for spectacle
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: spotify-launcher
-  description: Default description for spotify-launcher
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: steam
-  description: Default description for steam
-  source: pacman
-  category: Games
-  conflicts: []
-- name: syncthing-bin
-  description: Default description for syncthing-bin
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: telegram-desktop
-  description: Default description for telegram-desktop
-  source: Unknown
-  category: Utilities
-  conflicts: []
-- name: tree
-  description: Default description for tree
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: ttf-ms-fonts
-  description: Default description for ttf-ms-fonts
-  source: Unknown
-  category: Fonts
-  conflicts: []
-- name: ufw-extras
-  description: Default description for ufw-extras
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: usbmuxd
-  description: Default description for usbmuxd
-  source: pacman
-  category: System utils
-  conflicts: []
-- name: visual-studio-code-bin
-  description: Default description for visual-studio-code-bin
-  source: paru
-  category: Developer Tools
-  conflicts: []
-- name: vkbasalt
-  description: Default description for vkbasalt
-  source: paru
-  category: System utils
-  conflicts: []
-- name: vulkan-radeon
-  description: Default description for vulkan-radeon
-  source: pacman
-  category: AMD
-  conflicts: []
-- name: vulkan-tools
-  description: Default description for vulkan-tools
-  source: pacman
-  category: AMD
-  conflicts: []
-- name: waywallen
-  description: Default description for waywallen
-  source: paru
-  category: Utilities
-  conflicts: []
-- name: wireplumber
-  description: Default description for wireplumber
-  source: Unknown
-  category: Pipewire
-  conflicts: []
-- name: xdg-desktop-portal-kde
-  description: Default description for xdg-desktop-portal-kde
-  source: pacman
-  category: KDE
-  conflicts: []
-- name: xpadneo-dkms
-  description: Default description for xpadneo-dkms
-  source: Unknown
-  category: System utils
-  conflicts: []
-- name: zenmap
-  description: Default description for zenmap
-  source: pacman
-  category: Utilities
-  conflicts: []
-- name: brave-bin
+  fedora_app_name: bluez-tools
+- name: brave
+  title: Brave Browser
   description: Chromium-based browser with built-in privacy defaults from the AUR.
   source: paru
   category: Browsers
   conflicts: []
-- name: firedragon
-  description: Floorp-based browser build distributed for Arch through the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-- name: firefox
-  description: Mozilla web browser focused on standards support and privacy.
-  source: pacman
-  category: Browsers
-  conflicts: []
-- name: google-chrome
-  description: Official Google Chrome browser package from the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
+  fedora_app_name: brave-browser
+  arch_app_name: brave-bin
+  fedora_repo_id: brave-browser
+  fedora_repo_file_url: https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+  fedora_gpg_key: https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
+  fedora_gpg_key_owner: Brave Software
+  icon_url: https://brave.com/static-assets/images/cropped-brave_appicon_release-192x192.png
 - name: chromium
   description: Open source Chromium browser package from the Arch repositories.
   source: pacman
   category: Browsers
   conflicts: []
+  fedora_app_name: chromium
+  title: Chromium
+  icon_url: https://www.chromium.org/_assets/icon-chromium-96.png
+- name: cowsay-bin
+  description: Default description for cowsay-bin
+  source: paru
+  category: System utils
+  conflicts: []
+  fedora_app_name: cowsay
+- name: dolphin
+  description: Default description for dolphin
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: dolphin
+- name: dolphin-emu
+  description: Default description for dolphin-emu
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: dolphin-emu
+- name: dolphin-plugins
+  description: Default description for dolphin-plugins
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: dolphin-plugins
+- name: dos2unix
+  description: Default description for dos2unix
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: dos2unix
+- name: dosfstools
+  description: Default description for dosfstools
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: dosfstools
+- name: efibootmgr
+  description: Default description for efibootmgr
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: efibootmgr
+- name: epic-games-launcher-bin
+  description: Default description for epic-games-launcher-bin
+  source: paru
+  category: Utilities
+  conflicts: []
+  fedora_app_name: null
+- name: expac
+  description: Default description for expac
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: eza
+  description: Default description for eza
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: eza
+- name: fastfetch
+  description: Default description for fastfetch
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: fastfetch
+- name: faudio
+  description: Default description for faudio
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: libFAudio
+- name: fd
+  description: Default description for fd
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: fd-find
+- name: ffmpeg
+  description: Default description for ffmpeg
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: ffmpeg-free
+- name: ffmpegthumbs
+  description: Default description for ffmpegthumbs
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: ffmpegthumbs
+- name: firedragon
+  description: Floorp-based browser build distributed for Arch through the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+  fedora_app_name: firedragon
+  title: Firedragon
+  icon_url: https://dl.flathub.org/media/org/garudalinux/firedragon/6d155e34e863974aef1ef4f8382d8896/icons/128x128/org.garudalinux.firedragon.png
+- name: firefox
+  description: Mozilla web browser focused on standards support and privacy.
+  source: pacman
+  category: Browsers
+  conflicts: []
+  fedora_app_name: firefox
+  title: Firefox
+  icon_url: https://www.firefox.com/media/img/favicons/firefox/browser/favicon-196x196.59e3822720be.png
+- name: fontconfig
+  description: Default description for fontconfig
+  source: Unknown
+  category: Fonts
+  conflicts: []
+  fedora_app_name: fontconfig
+- name: fortune-mod
+  description: Default description for fortune-mod
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: fortune-mod
+- name: gamemode
+  description: Default description for gamemode
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: gamemode
+- name: ghex
+  description: Default description for ghex
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: ghex
+- name: giflib
+  description: Default description for giflib
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: giflib
+- name: gimp
+  description: Default description for gimp
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: gimp
+- name: git
+  description: Default description for git
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: git
+- name: glfw
+  description: Default description for glfw
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: glfw
+- name: glow
+  description: Default description for glow
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: glow
+- name: google-chrome
+  description: Official Google Chrome browser package from the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+  fedora_app_name: google-chrome-stable
+  title: Google Chrome
+  icon_url: https://www.google.com/chrome/static/images/favicons/favicon-96x96.png
+- name: goverlay
+  description: Default description for goverlay
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: goverlay
+- name: gstreamer
+  description: Default description for gstreamer
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: gstreamer1
+- name: i2c-tools
+  description: Default description for i2c-tools
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: i2c-tools
+- name: imagemagick
+  description: Default description for imagemagick
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: ImageMagick
+- name: irqbalance
+  description: Default description for irqbalance
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: irqbalance
+- name: jdk-openjdk
+  description: Default description for jdk-openjdk
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: java-latest-openjdk-devel
 - name: jetbrains-toolbox
   description: JetBrains launcher for installing and updating IDEs and tools.
   source: paru
   category: Developer Tools
   conflicts: []
+  fedora_app_name: null
+  fedora_install_type: jetbrains-toolbox
+  title: JetBrains Toolbox
+  icon_url: https://commons.wikimedia.org/wiki/Special:Redirect/file/JetBrains%20logo.jpg
+- name: kcalc
+  description: Default description for kcalc
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kcalc
+- name: kde-gtk-config
+  description: Default description for kde-gtk-config
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kde-gtk-config
+- name: kdegraphics-thumbnailers
+  description: Default description for kdegraphics-thumbnailers
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kdegraphics-thumbnailers
+- name: keepassxc
+  description: Default description for keepassxc
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: keepassxc
+- name: kimageformats
+  description: Default description for kimageformats
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kf6-kimageformats
+- name: kio-admin
+  description: Default description for kio-admin
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kio-admin
+- name: kio-extras
+  description: Default description for kio-extras
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kio-extras
+- name: kio-fuse
+  description: Default description for kio-fuse
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kio-fuse
+- name: konsole
+  description: Default description for konsole
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: konsole
+- name: kscreen
+  description: Default description for kscreen
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kscreen
+- name: kwallet
+  description: Default description for kwallet
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kwallet
+- name: kwallet-pam
+  description: Default description for kwallet-pam
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: pam-kwallet
+- name: kwalletmanager
+  description: Default description for kwalletmanager
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: kwalletmanager5
+- name: less
+  description: Default description for less
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: less
+- name: lib32-alsa-plugins
+  description: Default description for lib32-alsa-plugins
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-alsa-plugins
+- name: lib32-fontconfig
+  description: Default description for lib32-fontconfig
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-fontconfig
+- name: lib32-gamemode
+  description: Default description for lib32-gamemode
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-gamemode
+- name: lib32-giflib
+  description: Default description for lib32-giflib
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-giflib
+- name: lib32-gst-plugins-base
+  description: Default description for lib32-gst-plugins-base
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-gst-plugins-base
+- name: lib32-gst-plugins-base-libs
+  description: Default description for lib32-gst-plugins-base-libs
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-gst-plugins-base-libs
+- name: lib32-gst-plugins-good
+  description: Default description for lib32-gst-plugins-good
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-gst-plugins-good
+- name: lib32-gstreamer
+  description: Default description for lib32-gstreamer
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-gstreamer
+- name: lib32-libdecor
+  description: Default description for lib32-libdecor
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-libdecor
+- name: lib32-libjpeg-turbo
+  description: Default description for lib32-libjpeg-turbo
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-libjpeg-turbo
+- name: lib32-mangohud
+  description: Default description for lib32-mangohud
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-mangohud
+- name: lib32-mesa
+  description: Default description for lib32-mesa
+  source: pacman
+  category: AMD
+  conflicts: []
+  fedora_app_name: lib32-mesa
+- name: lib32-mpg123
+  description: Default description for lib32-mpg123
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-mpg123
+- name: lib32-openal
+  description: Default description for lib32-openal
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-openal
+- name: lib32-pipewire
+  description: Default description for lib32-pipewire
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-pipewire
+- name: lib32-pipewire-jack
+  description: Default description for lib32-pipewire-jack
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: lib32-pipewire-jack
+- name: lib32-vulkan-radeon
+  description: Default description for lib32-vulkan-radeon
+  source: pacman
+  category: AMD
+  conflicts: []
+  fedora_app_name: lib32-vulkan-radeon
+- name: libjpeg-turbo
+  description: Default description for libjpeg-turbo
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: libjpeg-turbo
+- name: libreoffice-fresh
+  description: Default description for libreoffice-fresh
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: libreoffice-fresh
+- name: linux-firmware-amdgpu
+  description: Default description for linux-firmware-amdgpu
+  source: Unknown
+  category: AMD
+  conflicts: []
+  fedora_app_name: linux-firmware-amdgpu
+- name: linux-zen
+  description: Default description for linux-zen
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: linux-zen
+- name: linux-zen-headers
+  description: Default description for linux-zen-headers
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: linux-zen-headers
+- name: lm_sensors
+  description: Default description for lm_sensors
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: lm_sensors
+- name: localsend-bin
+  description: Default description for localsend-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: localsend-bin
+- name: lolcat
+  description: Default description for lolcat
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: lolcat
+- name: lsp-plugins
+  description: Default description for lsp-plugins
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: lsp-plugins
+- name: lutris
+  description: Default description for lutris
+  source: pacman
+  category: Games
+  conflicts: []
+  fedora_app_name: lutris
+- name: makemkv
+  description: Default description for makemkv
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: makemkv
+- name: makepkg-optimize-mold
+  description: Default description for makepkg-optimize-mold
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: mangohud
+  description: Default description for mangohud
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: mangohud
+- name: maven
+  description: Default description for maven
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: maven
+- name: memavaild
+  description: Default description for memavaild
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: mesa
+  description: Default description for mesa
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: mesa-dri-drivers
+- name: mesa-utils
+  description: Default description for mesa-utils
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: mesa-demos
+- name: mission-center
+  description: Default description for mission-center
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: mission-center
+- name: nmap
+  description: Default description for nmap
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: nmap
+- name: nodejs
+  description: Default description for nodejs
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: nodejs
+- name: noto-fonts
+  description: Default description for noto-fonts
+  source: Unknown
+  category: Fonts
+  conflicts: []
+  fedora_app_name: google-noto-sans-fonts
+- name: noto-fonts-cjk
+  description: Default description for noto-fonts-cjk
+  source: Unknown
+  category: Fonts
+  conflicts: []
+  fedora_app_name: google-noto-sans-cjk-fonts
+- name: noto-fonts-extra
+  description: Default description for noto-fonts-extra
+  source: Unknown
+  category: Fonts
+  conflicts: []
+  fedora_app_name: google-noto-fonts-all
+- name: npm
+  description: Default description for npm
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: nodejs-npm
+- name: ntfs-3g
+  description: Default description for ntfs-3g
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: ntfs-3g
+- name: ntfsprogs
+  description: Default description for ntfsprogs
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: ntfsprogs
+- name: ocs-url
+  description: Default description for ocs-url
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: okular
+  description: Default description for okular
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: okular
+- name: openal
+  description: Default description for openal
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: openal-soft
 - name: opera
   description: Chromium-based browser with built-in messaging and VPN features.
   source: paru
   category: Browsers
   conflicts: []
+  fedora_app_name: opera-stable
+  title: Opera
+  icon_url: https://cdn-production-opera-website.operacdn.com/staticfiles/assets/images/favicon/opera/apple-touch-icon-180x180.00d9278d6de6.png
+- name: partitionmanager
+  description: Default description for partitionmanager
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: kde-partitionmanager
+- name: pipewire
+  description: Default description for pipewire
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: pipewire
+- name: pipewire-alsa
+  description: Default description for pipewire-alsa
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: pipewire-alsa
+- name: pipewire-audio
+  description: Default description for pipewire-audio
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: pipewire
+- name: pipewire-jack
+  description: Default description for pipewire-jack
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: pipewire-jack-audio-connection-kit
+- name: pipewire-pulse
+  description: Default description for pipewire-pulse
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: pipewire-pulseaudio
+- name: pipewire-v4l2
+  description: Default description for pipewire-v4l2
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: pipewire-v4l2
+- name: pipewire-zeroconf
+  description: Default description for pipewire-zeroconf
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: null
+- name: plasma-desktop
+  description: Default description for plasma-desktop
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: plasma-desktop
+- name: plasma-nm
+  description: Default description for plasma-nm
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: plasma-nm
+- name: plasma-pa
+  description: Default description for plasma-pa
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: plasma-pa
+- name: plasma-wallpaper-waywallen
+  description: Default description for plasma-wallpaper-waywallen
+  source: paru
+  category: KDE
+  conflicts: []
+  fedora_app_name: null
+- name: plasma-workspace
+  description: Default description for plasma-workspace
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: plasma-workspace
+- name: plymouth-kcm
+  description: Default description for plymouth-kcm
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: plymouth-kcm
+- name: png2svg
+  description: Default description for png2svg
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: power-profiles-daemon
+  description: Default description for power-profiles-daemon
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: tuned-ppd
+- name: preload
+  description: Default description for preload
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: prismlauncher
+  description: Open source Minecraft launcher for managing modded instances.
+  source: pacman
+  category: Games
+  conflicts: []
+  fedora_app_name: prismlauncher
+  title: Prism Launcher
+  icon_url: https://dl.flathub.org/media/org/prismlauncher/PrismLauncher/9a1f7fe85e8ccfbd459c1dd3c70663af/icons/128x128/org.prismlauncher.PrismLauncher.png
+- name: protonplus
+  description: Default description for protonplus
+  source: paru
+  category: Utilities
+  conflicts: []
+  fedora_app_name: null
+- name: protontricks
+  description: Default description for protontricks
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: protontricks
+- name: pwvucontrol
+  description: Default description for pwvucontrol
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: pwvucontrol
+- name: python-pip
+  description: Default description for python-pip
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: python-pip
+- name: python-pyqt5
+  description: Default description for python-pyqt5
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: python-pyqt5
+- name: python-pyqt6
+  description: Default description for python-pyqt6
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: python-pyqt6
+- name: python-setuptools
+  description: Default description for python-setuptools
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: python-setuptools
+- name: qbittorrent
+  description: Default description for qbittorrent
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: qbittorrent
+- name: qt6-multimedia
+  description: Default description for qt6-multimedia
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: qt6-multimedia
+- name: rclone-browser
+  description: Default description for rclone-browser
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: rclone-browser
+- name: refind
+  description: Default description for refind
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: rEFInd
+- name: reflector
+  description: Default description for reflector
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: ripgrep
+  description: Default description for ripgrep
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: ripgrep
+- name: samba
+  description: Default description for samba
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: samba
+- name: sbctl
+  description: Default description for sbctl
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: scx-scheds
+  description: Default description for scx-scheds
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: sddm
+  description: Default description for sddm
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: sddm
+- name: sddm-kcm
+  description: Default description for sddm-kcm
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: sddm-kcm
+- name: spectacle
+  description: Default description for spectacle
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: spectacle
+- name: spotify-launcher
+  description: Default description for spotify-launcher
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: spotify-launcher
+- name: steam
+  description: Valve launcher and storefront for PC games.
+  source: pacman
+  category: Games
+  conflicts: []
+  fedora_app_name: steam
+  fedora_flatpak_app_id: com.valvesoftware.Steam
+  title: Steam
+  icon_url: https://commons.wikimedia.org/wiki/Special:Redirect/file/Steam%20logo.png
+- name: syncthing-bin
+  title: Syncthing
+  description: Default description for syncthing-bin
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: syncthing
+- name: telegram-desktop
+  description: Default description for telegram-desktop
+  source: Unknown
+  category: Utilities
+  conflicts: []
+  fedora_app_name: telegram-desktop
 - name: tor-browser-bin
   description: Tor Browser bundle packaged for Arch through the AUR.
   source: paru
   category: Browsers
   conflicts: []
+  fedora_app_name: torbrowser-launcher
+  title: Tor Browser
+  icon_url: https://www.torproject.org/static/images/favicon/favicon.png
+- name: tree
+  description: Default description for tree
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: tree
+- name: ttf-ms-fonts
+  description: Default description for ttf-ms-fonts
+  source: Unknown
+  category: Fonts
+  conflicts: []
+  fedora_app_name: null
+- name: ufw-extras
+  description: Default description for ufw-extras
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: usbmuxd
+  description: Default description for usbmuxd
+  source: pacman
+  category: System utils
+  conflicts: []
+  fedora_app_name: usbmuxd
+- name: visual-studio-code-bin
+  description: Microsoft source build of Visual Studio Code from the AUR.
+  source: paru
+  category: Developer Tools
+  conflicts: []
+  fedora_app_name: code
+  fedora_flatpak_app_id: com.visualstudio.code
+  fedora_repo_id: code
+  fedora_repo_name: Visual Studio Code
+  fedora_repo_baseurl: https://packages.microsoft.com/yumrepos/vscode
+  fedora_repo_file_name: vscode.repo
+  fedora_repo_type: rpm-md
+  fedora_repo_autorefresh: 1
+  fedora_gpg_key: https://packages.microsoft.com/keys/microsoft.asc
+  fedora_gpg_key_owner: Microsoft
+  title: Visual Studio Code
+  icon_url: https://commons.wikimedia.org/wiki/Special:Redirect/file/Visual%20Studio%20Code%201.35%20icon.png
 - name: vivaldi
   description: Feature-heavy Chromium-based browser package from the Arch repositories.
   source: pacman
   category: Browsers
   conflicts: []
+  fedora_app_name: vivaldi-stable
+  title: Vivaldi
+  icon_url: https://vivaldi.com/wp-content/uploads/cropped-viv_icon-500px.png
+- name: vkbasalt
+  description: Default description for vkbasalt
+  source: paru
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: vulkan-radeon
+  description: Default description for vulkan-radeon
+  source: pacman
+  category: AMD
+  conflicts: []
+  fedora_app_name: mesa-vulkan-drivers
+- name: vulkan-tools
+  description: Default description for vulkan-tools
+  source: pacman
+  category: AMD
+  conflicts: []
+  fedora_app_name: vulkan-tools
+- name: waywallen
+  description: Default description for waywallen
+  source: paru
+  category: Utilities
+  conflicts: []
+  fedora_app_name: null
+- name: wireplumber
+  description: Default description for wireplumber
+  source: Unknown
+  category: Pipewire
+  conflicts: []
+  fedora_app_name: wireplumber
+- name: xdg-desktop-portal-kde
+  description: Default description for xdg-desktop-portal-kde
+  source: pacman
+  category: KDE
+  conflicts: []
+  fedora_app_name: xdg-desktop-portal-kde
+- name: xpadneo-dkms
+  description: Default description for xpadneo-dkms
+  source: Unknown
+  category: System utils
+  conflicts: []
+  fedora_app_name: null
+- name: zenmap
+  description: Default description for zenmap
+  source: pacman
+  category: Utilities
+  conflicts: []
+  fedora_app_name: zenmap

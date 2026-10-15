@@ -5,8 +5,11 @@ REPO_OWNER="aleksireede"
 REPO_NAME="arch-mysetup"
 REPO_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}.git"
 REPO_BRANCH="main"
-INSTALL_DIR="/opt/arch-mysetup"
-LAUNCHER_BIN="/usr/local/bin/arch-mysetup"
+INSTALL_DIR="/opt/linux-manager"
+if [[ ! -d "$INSTALL_DIR/.git" && -d "/opt/arch-mysetup/.git" ]]; then
+  INSTALL_DIR="/opt/arch-mysetup"
+fi
+LAUNCHER_BIN="/usr/local/bin/linux-manager"
 LATEST_RELEASE_API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
 
 if ! command -v curl >/dev/null 2>&1; then
@@ -30,10 +33,10 @@ if [[ -z "$CURRENT_TAG" ]]; then
 fi
 
 LATEST_TAG=""
-if curl -fsSL "$LATEST_RELEASE_API" >/tmp/arch_mysetup_release.json 2>/dev/null; then
-  LATEST_TAG="$(sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' /tmp/arch_mysetup_release.json | head -n1)"
+if curl -fsSL "$LATEST_RELEASE_API" >/tmp/linux_manager_release.json 2>/dev/null; then
+  LATEST_TAG="$(sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' /tmp/linux_manager_release.json | head -n1)"
 fi
-rm -f /tmp/arch_mysetup_release.json
+rm -f /tmp/linux_manager_release.json
 
 if [[ -z "$LATEST_TAG" ]]; then
   echo "Unable to resolve latest release tag from GitHub."

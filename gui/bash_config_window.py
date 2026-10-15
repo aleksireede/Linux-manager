@@ -39,7 +39,7 @@ def is_bash_hook_enabled():
 
 
 class BashConfigWindow(QMainWindow):
-    VERSION_PATTERN = re.compile(r"^#\s*arch-mysetup-bash-extra-version:\s*(.+?)\s*$", re.MULTILINE)
+    VERSION_PATTERN = re.compile(r"^#\s*(?:linux-manager|arch-mysetup)-bash-extra-version:\s*(.+?)\s*$", re.MULTILINE)
     PAGE_BUTTON_WIDTH = 300
 
     def __init__(self, advanced_window=None):

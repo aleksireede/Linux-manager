@@ -5,6 +5,10 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
+from functools import lru_cache
+import yaml
+import configparser
+from programs.app_settings import fedora_conflict_policy
 
 # Filesystem types that are backed by the network (fstab "type" field).
 NETWORK_FS_TYPES = {
@@ -18,12 +22,221 @@ def command_exists(command):
 
 
 def package_manager():
-    """Return the supported system package manager, preferring Arch when present."""
+    """Detect the system's native package manager."""
+    try:
+        distro_id = next((line.split("=", 1)[1].strip('"') for line in Path("/etc/os-release").read_text().splitlines()
+                          if line.startswith("ID=")), "")
+    except OSError:
+        distro_id = ""
+    if distro_id == "fedora":
+        if command_exists("dnf5"):
+            return "dnf5"
+        if command_exists("dnf"):
+            return "dnf"
     if command_exists("pacman"):
         return "pacman"
+    if command_exists("dnf5"):
+        return "dnf5"
     if command_exists("dnf"):
         return "dnf"
     return None
+
+
+def is_fedora():
+    try:
+        return any(line.startswith("ID=fedora") for line in Path("/etc/os-release").read_text().splitlines())
+    except OSError:
+        return package_manager() in {"dnf", "dnf5"}
+
+
+def _catalog_signature():
+    root = Path(__file__).parent.parent / "bin"
+    signature = []
+    path = root / "app.yaml"
+    try:
+        stat = path.stat()
+        signature.append(("app.yaml", stat.st_mtime_ns, stat.st_size))
+    except OSError:
+        signature.append(("app.yaml", None, None))
+    return tuple(signature)
+
+
+@lru_cache(maxsize=8)
+def _load_fedora_app_records(signature):
+    """Load Fedora package overrides and repository requirements once."""
+    root = Path(__file__).parent.parent / "bin"
+    records = {}
+    try:
+        entries = yaml.safe_load((root / "app.yaml").read_text(encoding="utf-8")) or []
+    except (OSError, yaml.YAMLError):
+        entries = []
+    for entry in entries:
+        if isinstance(entry, dict) and entry.get("name"):
+            records.setdefault(entry["name"], entry)
+    return records
+
+
+def _fedora_app_records():
+    # IDE edits do not call clear_app_catalog_cache(), so include catalog file
+    # metadata in the cache key to avoid using stale package names in a live UI.
+    return _load_fedora_app_records(_catalog_signature())
+
+
+def clear_app_catalog_cache():
+    """Reload package-name mappings after the YAML catalog changes."""
+    _load_fedora_app_records.cache_clear()
+    _fedora_repository_ready.cache_clear()
+
+
+def fedora_app_name(app_name):
+    """Translate a catalog's Arch identifier to its Fedora package name, if defined."""
+    record = _fedora_app_records().get(app_name)
+    return record.get("fedora_app_name", app_name) if record else app_name
+
+
+def fedora_install_type(app_name):
+    """Return a catalog-defined non-RPM Fedora installation method, if any."""
+    record = _fedora_app_records().get(app_name, {})
+    return record.get("fedora_install_type")
+
+
+def _jetbrains_toolbox_installed():
+    """Recognize both Toolbox's extracted version directory and its stable path."""
+    toolbox_dir = Path.home() / ".local/share/JetBrains/Toolbox"
+    binary_paths = [toolbox_dir / "bin/jetbrains-toolbox"]
+    try:
+        binary_paths.extend(toolbox_dir.glob("jetbrains-toolbox-*/bin/jetbrains-toolbox"))
+    except OSError:
+        pass
+    return any(path.is_file() and os.access(path, os.X_OK) for path in binary_paths) or command_exists(
+        "jetbrains-toolbox"
+    )
+
+
+def arch_app_name(app_name):
+    """Translate a catalog identifier to its Arch package name, when set."""
+    record = _fedora_app_records().get(app_name)
+    return record.get("arch_app_name", app_name) if record else app_name
+
+
+def arch_catalog_app_name(package_name):
+    """Translate an installed Arch package name back to its catalog identifier."""
+    for app_name, record in _fedora_app_records().items():
+        if record.get("arch_app_name") == package_name:
+            return app_name
+    return package_name
+
+
+def fedora_catalog_app_name(package_name):
+    """Translate an installed Fedora package back to its catalog identifier."""
+    for app_name, record in _fedora_app_records().items():
+        if record.get("fedora_app_name") == package_name:
+            return app_name
+    return package_name
+
+
+def _fedora_flatpak_installed(app_name):
+    record = _fedora_app_records().get(app_name, {})
+    app_id = record.get("fedora_flatpak_app_id")
+    if not app_id or not command_exists("flatpak"):
+        return False
+    for scope in ("--user", "--system"):
+        try:
+            subprocess.run(
+                ["flatpak", "info", scope, app_id],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                check=True, timeout=8,
+            )
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+    return False
+
+
+@lru_cache(maxsize=None)
+def _fedora_repository_ready(app_name):
+    record = _fedora_app_records().get(app_name, {})
+    repo_id = record.get("fedora_repo_id")
+    if not repo_id:
+        return True
+
+    expected_key = str(record.get("fedora_gpg_key", "")).lower()
+    if not expected_key:
+        return False
+
+    repo_enabled = False
+    repo_key_matches = False
+    for repo_file in Path("/etc/yum.repos.d").glob("*.repo"):
+        parser = configparser.ConfigParser()
+        try:
+            parser.read(repo_file, encoding="utf-8")
+        except (OSError, configparser.Error):
+            continue
+        if not parser.has_section(str(repo_id)):
+            continue
+        section = parser[str(repo_id)]
+        repo_enabled = section.get("enabled", "1").strip() == "1"
+        repo_key_matches = expected_key in section.get("gpgkey", "").lower()
+        if repo_enabled and section.get("gpgcheck", "0").strip() == "1" and repo_key_matches:
+            break
+        repo_enabled = False
+
+    return repo_enabled and repo_key_matches
+
+
+def fedora_packages_available(app_names):
+    """Resolve many catalog apps against enabled Fedora repos in one query."""
+    manager = package_manager()
+    if manager not in {"dnf", "dnf5"}:
+        return set()
+    available = {
+        app_name for app_name in dict.fromkeys(app_names)
+        if fedora_install_type(app_name) == "jetbrains-toolbox"
+    }
+    package_names = {}
+    for app_name in dict.fromkeys(app_names):
+        package_name = _system_package_name(app_name)
+        if package_name == "@development-tools" and _fedora_repository_ready(app_name):
+            # DNF groups are installable targets but do not appear in repoquery
+            # package results, so recognize the Fedora equivalent directly.
+            available.add(app_name)
+        elif package_name and _fedora_repository_ready(app_name):
+            package_names[app_name] = package_name
+    if not package_names:
+        return available
+    try:
+        result = subprocess.run(
+            [
+                manager, "repoquery", "--available", "--queryformat",
+                "%{name}\\n", *sorted(set(package_names.values())),
+            ],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+            timeout=120,
+        )
+        requested_names = set(package_names.values())
+        # DNF can return a non-zero status when any requested name is missing,
+        # while still printing matches for the other names. Keep those matches
+        # so one bad catalog entry cannot hide every valid package.
+        available_names = {
+            line.strip() for line in result.stdout.splitlines()
+            if line.strip() in requested_names
+        }
+        available.update({
+            app_name for app_name, package_name in package_names.items()
+            if package_name in available_names
+        })
+        return available
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        return available
+
+
+def fedora_package_available(app_name):
+    """Check one catalog application's package against enabled Fedora repos."""
+    return app_name in fedora_packages_available([app_name])
+
+
+def _system_package_name(app_name):
+    return fedora_app_name(app_name) if is_fedora() else arch_app_name(app_name)
 
 
 def detect_install_method(app_name):
@@ -33,15 +246,22 @@ def detect_install_method(app_name):
     """
 
     manager = package_manager()
-    if manager == "dnf":
-        try:
-            subprocess.run(["dnf", "info", "--available", app_name], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-            return "pacman"  # Keep the catalog source stable; app_install maps it to dnf.
-        except (subprocess.CalledProcessError, FileNotFoundError):
+    if manager in {"dnf", "dnf5"}:
+        if str(app_name).lower() in {"paru", "aur"}:
             return None
+        catalog_name = str(app_name)
+        if fedora_install_type(catalog_name) == "jetbrains-toolbox":
+            return "fedora-archive"
+        app_name = _system_package_name(app_name)
+        if not app_name:
+            return None
+        if not fedora_package_available(catalog_name):
+            return None
+        return "pacman"  # Catalog source stays stable; app_install maps it to DNF.
     if manager != "pacman":
         return None
+
+    app_name = arch_app_name(app_name)
 
     # Check official repos
     try:
@@ -74,43 +294,13 @@ def get_install_method_from_source(source):
     if not source:
         return None
     normalized = str(source).strip().lower()
+    if package_manager() in {"dnf", "dnf5"}:
+        return "pacman" if normalized in {"pacman", "official", "repo", "repository", "paru", "aur"} else None
     if normalized in {"pacman", "official", "repo", "repository"}:
         return "pacman"
     if normalized in {"paru", "aur"}:
         return "paru"
     return None
-
-
-def detect_installed_method(app_name):
-    """Best-effort detection of how an installed app should be removed."""
-    if package_manager() == "dnf":
-        try:
-            subprocess.run(["rpm", "-q", app_name], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-            return "pacman"  # Catalog/UI legacy name, executed as dnf below.
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return None
-    try:
-        subprocess.run(
-            ["pacman", "-Qm", app_name],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True
-        )
-        return "paru" if command_exists("paru") else "pacman"
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        pass
-
-    try:
-        subprocess.run(
-            ["pacman", "-Q", app_name],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True
-        )
-        return "pacman"
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
 
 
 def list_all_installed_apps():
@@ -122,6 +312,30 @@ def list_all_installed_apps():
 
 
 def list_apps(method: str):
+    if method == "pacman" and package_manager() in {"dnf", "dnf5"}:
+        try:
+            # Match DNF's user-installed package list; listing every RPM can
+            # produce thousands of rows and make the uninstaller unusable.
+            result = subprocess.run(
+                [package_manager(), "--cacheonly", "repoquery", "--userinstalled", "--qf", "%{name}\\n"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                check=True, timeout=30,
+            )
+            return [fedora_catalog_app_name(name) for name in result.stdout.splitlines()]
+        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+            # Some Fedora installations lack the repoquery command/plugin.
+            # Fall back to tracked catalog apps, rather than loading every RPM.
+            try:
+                result = subprocess.run(
+                    ["rpm", "-qa", "--qf", "%{NAME}\\n"],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                    check=True, timeout=10,
+                )
+                tracked_names = {name for name in _fedora_package_names().values() if name}
+                return [fedora_catalog_app_name(name) for name in result.stdout.splitlines()
+                        if name in tracked_names]
+            except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+                return []
     if method == "pacman":
         cmd = ["pacman", "-Qenq"]
     elif method == "paru":
@@ -133,6 +347,8 @@ def list_apps(method: str):
     try:
         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
         applist = result.stdout.splitlines()
+        if package_manager() == "pacman":
+            applist = [arch_catalog_app_name(name) for name in applist]
         return applist
     except (subprocess.CalledProcessError, FileNotFoundError):
         return []
@@ -140,13 +356,20 @@ def list_apps(method: str):
 
 def is_app_installed(app_name):
     """Check if an app is installed using pacman or paru."""
-    if package_manager() == "dnf":
-        try:
-            subprocess.run(["rpm", "-q", app_name], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL, check=True)
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return False
+    if package_manager() in {"dnf", "dnf5"}:
+        catalog_app_name = app_name
+        if fedora_install_type(catalog_app_name) == "jetbrains-toolbox":
+            return _jetbrains_toolbox_installed()
+        app_name = _system_package_name(app_name)
+        if app_name:
+            try:
+                subprocess.run(["rpm", "-q", app_name], stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL, check=True)
+                return True
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                pass
+        return _fedora_flatpak_installed(catalog_app_name)
+    app_name = arch_app_name(app_name)
     try:
         subprocess.run(["pacman", "-Q", app_name],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
@@ -257,14 +480,36 @@ def open_terminal(command):
 
 
 def app_install(apps, command: str):
+    if command == "fedora-archive" and package_manager() in {"dnf", "dnf5"}:
+        script_path = Path(__file__).resolve().parent.parent / "scripts" / "install_jetbrains_toolbox.py"
+        return subprocess.Popen(
+            [shutil.which("python3") or "python3", str(script_path)],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, bufsize=1,
+        )
     if command == "paru":
         install_command= ["paru", "-S", "--skipreview", "--needed", "--quiet", "--color", "always"]
-        return apps_helper(apps, install_command)
+        arch_apps = [arch_app_name(app) for app in apps] if isinstance(apps, list) else arch_app_name(apps)
+        return apps_helper(arch_apps, install_command)
     elif command == "pacman":
-        if package_manager() == "dnf":
-            return apps_helper(apps, ["sudo", "dnf", "install", "-y"])
+        if package_manager() in {"dnf", "dnf5"}:
+            fedora_apps = [_system_package_name(app) for app in apps] if isinstance(apps, list) else _system_package_name(apps)
+            if not fedora_apps or (isinstance(fedora_apps, list) and any(not app for app in fedora_apps)):
+                return None
+            auth_command = "pkexec" if command_exists("pkexec") else "sudo"
+            command_line = [auth_command, package_manager(), "install", "-y", *fedora_apps]
+            conflict_policy = fedora_conflict_policy()
+            if conflict_policy == "replace":
+                command_line.insert(3, "--allowerasing")
+            else:
+                command_line.insert(3, "--skip-broken")
+            if auth_command == "pkexec":
+                return subprocess.Popen(command_line, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                        text=True, bufsize=1)
+            return open_terminal(command_line)
         install_command = ["sudo", "pacman", "-S", "--needed", "--quiet", "--color", "always"]
-        return apps_helper(apps, install_command)
+        arch_apps = [arch_app_name(app) for app in apps] if isinstance(apps, list) else arch_app_name(apps)
+        return apps_helper(arch_apps, install_command)
     return None
 
 def remove_apps(apps, command: str):
@@ -272,13 +517,17 @@ def remove_apps(apps, command: str):
     if command == "paru":
         remove_command.append("paru")
     elif command == "pacman":
-        if package_manager() == "dnf":
-            remove_command.extend(["sudo", "dnf", "remove", "-y"])
-            return apps_helper(apps, remove_command)
+        if package_manager() in {"dnf", "dnf5"}:
+            fedora_apps = [_system_package_name(app) for app in apps] if isinstance(apps, list) else _system_package_name(apps)
+            if not fedora_apps or (isinstance(fedora_apps, list) and any(not app for app in fedora_apps)):
+                return None
+            return apps_helper(fedora_apps, ["sudo", package_manager(), "remove", "-y"])
         remove_command.extend(["sudo", "pacman", "-Rns", "--color", "always"])
-        return apps_helper(apps, remove_command)
+        arch_apps = [arch_app_name(app) for app in apps] if isinstance(apps, list) else arch_app_name(apps)
+        return apps_helper(arch_apps, remove_command)
     remove_command.extend(["-Rns", "--color", "always"])
-    return apps_helper(apps, remove_command)
+    arch_apps = [arch_app_name(app) for app in apps] if isinstance(apps, list) else arch_app_name(apps)
+    return apps_helper(arch_apps, remove_command)
 
 
 def apps_helper(apps, command):
@@ -453,3 +702,24 @@ def get_mount_size(mount_point):
         return True, "Mounted"
     except (subprocess.SubprocessError, OSError):
         return True, "Mounted"
+
+
+def set_network_drive_mounted(mount_point, mount=True):
+    """Mount or unmount a configured filesystem using a graphical privilege prompt."""
+    auth_command = "pkexec" if command_exists("pkexec") else "sudo"
+    operation = "mount" if mount else "umount"
+    try:
+        result = subprocess.run(
+            [auth_command, operation, str(mount_point)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, timeout=90,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError(f"{operation.capitalize()} timed out for {mount_point}.") from error
+    except OSError as error:
+        raise RuntimeError(f"Could not start {operation}: {error}") from error
+
+    if result.returncode != 0:
+        message = result.stderr.strip() or result.stdout.strip() or f"{operation.capitalize()} failed."
+        raise RuntimeError(message)
+    return True

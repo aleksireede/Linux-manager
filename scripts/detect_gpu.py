@@ -5,7 +5,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("gui"))
 sys.path.append(parent_dir)
 
-from installer_logic import open_terminal
+from installer_logic import open_terminal, package_manager
 
 
 def detect_gpu_vendor():
@@ -31,6 +31,15 @@ def detect_gpu_vendor():
 
 
 def install_drivers(vendor_name):
+    if package_manager() in {"dnf", "dnf5"}:
+        packages = {
+            "Intel": ["mesa-dri-drivers", "mesa-vulkan-drivers", "xorg-x11-drv-intel"],
+            "AMD": ["mesa-dri-drivers", "mesa-vulkan-drivers", "xorg-x11-drv-amdgpu"],
+            "NVIDIA": ["akmod-nvidia", "xorg-x11-drv-nvidia-cuda"],
+        }.get(vendor_name)
+        if packages:
+            open_terminal(["sudo", package_manager(), "install", "-y", *packages])
+        return
     if vendor_name == "Intel":
         open_terminal(
             ["sudo", "pacman", "-S", "--needed", "mesa", "lib32-mesa", "vulkan-intel", "lib32-vulkan-intel","xf86-video-intel"])

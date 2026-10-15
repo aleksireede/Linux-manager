@@ -33,6 +33,7 @@ from programs.config import (
     ZEROCONF_DEST_PATH,
     AIRPLAY_DEST_PATH,
 )
+from programs.installer_logic import package_manager
 
 
 def set_status_icon(label: QLabel, enabled):
@@ -98,6 +99,7 @@ class AdvancedTweaks(QMainWindow):
         pacman_page_button.setIcon(QIcon(str(BLUE_RIGHT_ARROW_ICON_PATH)))
         pacman_page_button.setFixedWidth(self.ADV_BUTTON_WIDTH)
         pacman_page_button.clicked.connect(self.open_pacman_config)
+        pacman_page_button.setVisible(package_manager() == "pacman")
         pacman_row = QHBoxLayout()
         pacman_row.addStretch()
         pacman_row.addWidget(pacman_page_button)

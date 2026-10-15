@@ -25,15 +25,15 @@ bashrc_extra_text = 'if [ -f ~/.bash_extra ]; then\n. ~/.bash_extra\nfi'
 bash_extra_version = BASH_EXTRA_VERSION
 _bash_extra_body = BASH_EXTRA_TEMPLATE_PATH.read_text().rstrip()
 bash_extra_text = (
-    f"# Managed by arch-mysetup\n"
-    f"# arch-mysetup-bash-extra-version: {bash_extra_version}\n\n"
+    f"# Managed by Linux-Manager\n"
+    f"# linux-manager-bash-extra-version: {bash_extra_version}\n\n"
     f"{_bash_extra_body}\n"
 )
 bash_custom_version = BASH_CUSTOM_VERSION
 _bash_custom_body = BASH_CUSTOM_TEMPLATE_PATH.read_text().rstrip()
 bash_custom_text = (
-    f"# Managed by arch-mysetup\n"
-    f"# arch-mysetup-bash-extra-version: {bash_custom_version}\n\n"
+    f"# Managed by Linux-Manager\n"
+    f"# linux-manager-bash-extra-version: {bash_custom_version}\n\n"
     f"{_bash_custom_body}\n"
 )
 

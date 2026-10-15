@@ -1,15 +1,12 @@
-import subprocess
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout, \
-    QListWidgetItem, QWidget, QToolButton, QLabel, QStyle, QComboBox, QLineEdit, QDialogButtonBox, QSizePolicy
+    QListWidgetItem, QLabel, QComboBox, QLineEdit, QDialogButtonBox
 
-from programs.apps_file import add_app_to_yaml, load_yaml, set_apps_category
-from programs.installer_logic import (
-    command_exists,
-)
+from programs.apps_file import add_app_to_yaml, load_yaml, set_apps_category, update_app_in_yaml
+from programs.installer_logic import is_fedora, arch_app_name, fedora_app_name
 try:
     from .theme import configure_dialog
     from .category_list import add_category_header
@@ -29,6 +26,10 @@ class AppListEditorDialog(QDialog):
         self.collapsed_categories = set()
         self.category_apps = {}
         self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
+        self.is_fedora = is_fedora()
+        self.distro_icon_path = Path(__file__).resolve().parent.parent.joinpath(
+            "icons", "fedora-distro.svg" if self.is_fedora else "arch-distro.svg"
+        )
 
         # use vertical box layout
         layout = QHBoxLayout(self)
@@ -42,6 +43,9 @@ class AppListEditorDialog(QDialog):
         # Add button
         add_btn = QPushButton("Add app", self)
         add_btn.clicked.connect(self.add_apps)
+
+        edit_btn = QPushButton("Edit App", self)
+        edit_btn.clicked.connect(self.edit_app)
 
         # OK button
         ok_btn = QPushButton("Apply", self)
@@ -69,6 +73,7 @@ class AppListEditorDialog(QDialog):
         # button layout
         button_layout.addStretch()
         button_layout.addWidget(add_btn)
+        button_layout.addWidget(edit_btn)
         button_layout.addWidget(search_btn)
         button_layout.addWidget(remove_btn)
         button_layout.addWidget(category_btn)
@@ -83,7 +88,12 @@ class AppListEditorDialog(QDialog):
     def populate_list(self):
         self.list_widget.clear()
         app_categories = {}
-        for entry in load_yaml():
+        catalog_entries = load_yaml()
+        entries_by_name = {
+            entry["name"]: entry for entry in catalog_entries
+            if isinstance(entry, dict) and entry.get("name")
+        }
+        for entry in catalog_entries:
             if entry.get("name"):
                 app_categories[entry["name"]] = str(entry.get("category") or "Universal").strip() or "Universal"
         grouped = {}
@@ -101,8 +111,13 @@ class AppListEditorDialog(QDialog):
             )
 
             for app in sorted(grouped[category], key=str.casefold):
-                item = QListWidgetItem(f"    {app}")
+                item = QListWidgetItem(app)
                 item.setData(Qt.ItemDataRole.UserRole, app)
+                entry = entries_by_name.get(app, {})
+                package_name = fedora_app_name(app) if self.is_fedora else arch_app_name(app)
+                source_label = "Fedora package" if self.is_fedora else entry.get("source", "Arch package")
+                item.setIcon(QIcon(str(self.distro_icon_path)))
+                item.setToolTip(f"{source_label}: {package_name or 'not configured'}")
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(Qt.CheckState.Unchecked)
                 self.list_widget.addItem(item)
@@ -177,7 +192,7 @@ class AppListEditorDialog(QDialog):
             )
 
     def add_apps(self):
-        """Open a dialog to add one or more apps, checking availability first."""
+        """Add an app with optional package names for Arch and Fedora."""
         categories = sorted({
             str(app.get("category", "Universal")).strip() or "Universal"
             for app in load_yaml() if isinstance(app, dict)
@@ -188,9 +203,19 @@ class AppListEditorDialog(QDialog):
         dialog = QDialog(self)
         dialog.setWindowTitle("Add Application")
         dialog_layout = QVBoxLayout(dialog)
-        dialog_layout.addWidget(QLabel("Application names (separate multiple names with commas):", dialog))
-        app_names_input = QLineEdit(dialog)
-        dialog_layout.addWidget(app_names_input)
+        dialog_layout.addWidget(QLabel("Application name:", dialog))
+        app_name_input = QLineEdit(dialog)
+        dialog_layout.addWidget(app_name_input)
+        dialog_layout.addWidget(QLabel("Arch package name:", dialog))
+        arch_package_input = QLineEdit(dialog)
+        dialog_layout.addWidget(arch_package_input)
+        dialog_layout.addWidget(QLabel("Fedora package name:", dialog))
+        fedora_package_input = QLineEdit(dialog)
+        dialog_layout.addWidget(fedora_package_input)
+        dialog_layout.addWidget(QLabel("Arch source:", dialog))
+        source_selector = QComboBox(dialog)
+        source_selector.addItems(["pacman", "paru"])
+        dialog_layout.addWidget(source_selector)
         dialog_layout.addWidget(QLabel("Category (choose one or type a new category name):", dialog))
         category_selector = QComboBox(dialog)
         category_selector.setEditable(True)
@@ -204,79 +229,106 @@ class AppListEditorDialog(QDialog):
         if dialog.exec() != QDialog.Accepted:
             return
 
-        new_apps_text = app_names_input.text()
+        app_name = app_name_input.text().strip()
+        arch_package = arch_package_input.text().strip()
+        fedora_package = fedora_package_input.text().strip()
         category = category_selector.currentText().strip()
         if not category:
             QMessageBox.information(self, "Choose Category", "Please enter a category name.")
             return
 
-        requested_apps = []
-        seen = set()
-        for raw_name in new_apps_text.split(","):
-            app_name = raw_name.strip()
-            if not app_name:
-                continue
-            normalized = app_name.casefold()
-            if normalized in seen:
-                continue
-            seen.add(normalized)
-            requested_apps.append(app_name)
-
-        if not requested_apps:
-            QMessageBox.information(self, "Add Application", "Please enter at least one application name.")
+        if not app_name or not arch_package and not fedora_package:
+            QMessageBox.information(
+                self, "Add Application", "Enter an application name and at least one distro package name."
+            )
+            return
+        if any(app.casefold() == app_name.casefold() for app in self.apps):
+            QMessageBox.information(self, "Add Application", f"'{app_name}' is already in the app list.")
             return
 
-        added_apps = []
-        duplicate_apps = []
-        not_found_apps = []
-
-        for new_app in requested_apps:
-            if new_app in self.apps:
-                duplicate_apps.append(new_app)
-                continue
-
-            available_in = []
-            try:
-                subprocess.run(
-                    ["pacman", "-Si", new_app],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
-                )
-                available_in.append("pacman")
-            except subprocess.CalledProcessError:
-                pass
-
-            if command_exists("paru"):
-                try:
-                    subprocess.run(
-                        ["paru", "-Si", new_app],
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
-                    )
-                    available_in.append("AUR")
-                except subprocess.CalledProcessError:
-                    pass
-
-            if available_in:
-                self.apps.append(new_app)
-                add_app_to_yaml(new_app, category)
-                added_apps.append(f"{new_app} ({', '.join(available_in)})")
-            else:
-                not_found_apps.append(new_app)
-
-        self.apps.sort()
+        add_app_to_yaml(
+            app_name,
+            category,
+            arch_app_name=arch_package or None,
+            fedora_app_name=fedora_package or None,
+            source=source_selector.currentText(),
+        )
+        self.apps.append(app_name)
+        self.apps.sort(key=str.casefold)
         self.populate_list()
+        QMessageBox.information(self, "Add Application", f"Added {app_name} for this distro.")
 
-        messages = []
-        if added_apps:
-            messages.append(f"Added: {', '.join(added_apps)}")
-        if duplicate_apps:
-            messages.append(f"Already in list: {', '.join(duplicate_apps)}")
-        if not_found_apps:
-            messages.append(f"Not found in pacman or AUR: {', '.join(not_found_apps)}")
+    def edit_app(self):
+        item = self.list_widget.currentItem()
+        app_name = item.data(Qt.ItemDataRole.UserRole) if item else None
+        if not app_name:
+            QMessageBox.information(self, "Edit App", "Select an app row to edit.")
+            return
 
-        if not added_apps:
-            QMessageBox.warning(self, "Add Application", "\n".join(messages))
-        else:
-            QMessageBox.information(self, "Add Application", "\n".join(messages))
+        entry = next((record for record in load_yaml() if record.get("name") == app_name), None)
+        if entry is None:
+            QMessageBox.warning(self, "Edit App", f"Could not find '{app_name}' in the app catalog.")
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Edit {app_name}")
+        dialog_layout = QVBoxLayout(dialog)
+        dialog_layout.addWidget(QLabel("Application name:", dialog))
+        app_name_input = QLineEdit(app_name, dialog)
+        dialog_layout.addWidget(app_name_input)
+
+        current_arch_package = entry.get("arch_app_name", app_name) or ""
+        current_fedora_package = (
+            entry.get("fedora_app_name", app_name)
+            if "fedora_app_name" in entry else app_name
+        ) or ""
+        dialog_layout.addWidget(QLabel("Arch package name:", dialog))
+        arch_package_input = QLineEdit(current_arch_package, dialog)
+        dialog_layout.addWidget(arch_package_input)
+        dialog_layout.addWidget(QLabel("Fedora package name:", dialog))
+        fedora_package_input = QLineEdit(current_fedora_package, dialog)
+        dialog_layout.addWidget(fedora_package_input)
+        dialog_layout.addWidget(QLabel("Arch source:", dialog))
+        source_selector = QComboBox(dialog)
+        source_selector.addItems(["pacman", "paru"])
+        current_source = str(entry.get("source", "pacman")).lower()
+        source_selector.setCurrentText("paru" if current_source in {"paru", "aur"} else "pacman")
+        dialog_layout.addWidget(source_selector)
+
+        dialog_buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel, dialog)
+        dialog_buttons.accepted.connect(dialog.accept)
+        dialog_buttons.rejected.connect(dialog.reject)
+        dialog_layout.addWidget(dialog_buttons)
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        new_name = app_name_input.text().strip()
+        arch_package = arch_package_input.text().strip()
+        fedora_package = fedora_package_input.text().strip()
+        if not new_name or not arch_package and not fedora_package:
+            QMessageBox.information(
+                self, "Edit App", "Enter an application name and at least one distro package name."
+            )
+            return
+        if new_name.casefold() != app_name.casefold() and any(
+            existing.casefold() == new_name.casefold() for existing in self.apps
+        ):
+            QMessageBox.information(self, "Edit App", f"'{new_name}' is already in the app list.")
+            return
+
+        saved = update_app_in_yaml(
+            app_name,
+            new_name,
+            arch_app_name=arch_package,
+            fedora_app_name=fedora_package,
+            source=source_selector.currentText(),
+        )
+        if not saved:
+            QMessageBox.warning(self, "Edit App", "The app could not be updated in the catalog.")
+            return
+        self.apps = [new_name if existing == app_name else existing for existing in self.apps]
+        self.apps.sort(key=str.casefold)
+        self.populate_list()
 
     def get_apps(self):
         return self.apps

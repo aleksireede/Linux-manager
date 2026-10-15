@@ -6,7 +6,9 @@
 
 export EDITOR=nano
 export QT_QPA_PLATFORM=wayland
-export QT_PLUGIN_PATH=/usr/lib/qt/plugins
+if command -v pacman >/dev/null 2>&1; then
+    export QT_PLUGIN_PATH=/usr/lib/qt/plugins
+fi
 
 export XDG_RUNTIME_DIR="/run/user/$UID"
 export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
@@ -53,12 +55,28 @@ alias neofetch='fastfetch | lolcat'
 # Paru
 # -----------------------------------------------------------------------------
 
-alias update='paru -Syu --skipreview --needed'
-alias install='paru -S --skipreview --needed'
-alias remove='paru -Rns'
-
-alias listpkg='paru -Qenq'
-alias listaur='paru -Qemq'
+if command -v dnf5 >/dev/null 2>&1; then
+    alias update='sudo dnf5 upgrade --refresh -y'
+    alias install='sudo dnf5 install -y'
+    alias remove='sudo dnf5 remove -y'
+    alias listpkg='dnf5 repoquery --userinstalled --qf "%{name}"'
+elif command -v dnf >/dev/null 2>&1; then
+    alias update='sudo dnf upgrade --refresh -y'
+    alias install='sudo dnf install -y'
+    alias remove='sudo dnf remove -y'
+    alias listpkg='dnf repoquery --userinstalled --qf "%{name}"'
+elif command -v paru >/dev/null 2>&1; then
+    alias update='paru -Syu --skipreview --needed'
+    alias install='paru -S --skipreview --needed'
+    alias remove='paru -Rns'
+    alias listpkg='paru -Qenq'
+    alias listaur='paru -Qemq'
+elif command -v pacman >/dev/null 2>&1; then
+    alias update='sudo pacman -Syu'
+    alias install='sudo pacman -S --needed'
+    alias remove='sudo pacman -Rns'
+    alias listpkg='pacman -Qenq'
+fi
 
 # -----------------------------------------------------------------------------
 # Startup

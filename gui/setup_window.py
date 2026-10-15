@@ -5,7 +5,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from PyQt5.QtCore import pyqtSignal, QObject, QThread
+from PyQt5.QtCore import pyqtSignal, QObject, QThread, Qt
 from PyQt5.QtGui import QPixmap, QColor, QBrush
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QFrame, \
     QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication, QTreeWidget, QTreeWidgetItem, QHeaderView, QGridLayout
@@ -18,7 +18,7 @@ sys.path.append(scripts_dir)
 
 from scripts.detect_gpu import detect_gpu_vendor
 from programs.config import CHECKMARK_ICON_PATH, RED_X_ICON_PATH
-from programs.installer_logic import install_paru, add_samba_drive, command_exists, open_terminal, parse_fstab_network_drives, get_mount_size
+from programs.installer_logic import install_paru, add_samba_drive, command_exists, open_terminal, parse_fstab_network_drives, get_mount_size, package_manager, set_network_drive_mounted
 try:
     from .theme import configure_main_window, configure_dialog
 except ImportError:
@@ -40,8 +40,8 @@ def is_mesa_installed():
     """Check if the Mesa package is installed on the system."""
     if shutil.which("pacman"):
         command = ["pacman", "-Q", "mesa"]
-    elif shutil.which("dnf"):
-        command = ["dnf", "list", "installed", "mesa"]
+    elif package_manager() in {"dnf", "dnf5"}:
+        command = ["rpm", "-q", "mesa-dri-drivers"]
     else:
         return False
 
@@ -79,7 +79,7 @@ class UpdateCheckWorker(QObject):
     @staticmethod
     def fetch_latest_release_tag():
         url = "https://api.github.com/repos/aleksireede/arch-mysetup/releases/latest"
-        request = urllib.request.Request(url, headers={"User-Agent": "arch-mysetup"})
+        request = urllib.request.Request(url, headers={"User-Agent": "Linux-Manager"})
         with urllib.request.urlopen(request, timeout=6) as response:
             payload = json.loads(response.read().decode("utf-8"))
         tag_name = payload.get("tag_name")
@@ -127,12 +127,31 @@ def ensure_sudo_authenticated():
     return True
 
 
+class NetworkDriveActionWorker(QObject):
+    finished = pyqtSignal(str, str)
+    error = pyqtSignal(str)
+
+    def __init__(self, mount_point, operation):
+        super().__init__()
+        self.mount_point = mount_point
+        self.operation = operation
+
+    def run(self):
+        try:
+            set_network_drive_mounted(
+                self.mount_point,
+                mount=self.operation == "mount",
+            )
+            self.finished.emit(self.mount_point, self.operation)
+        except Exception as error:
+            self.error.emit(str(error))
+
+
 class SetupWindow(QMainWindow):
     open_installer = pyqtSignal()  # Signal to open the installer
     open_uninstaller = pyqtSignal()
     open_advanced_tweaks = pyqtSignal()
     open_apps_page = pyqtSignal()
-    open_services_page = pyqtSignal()
     open_updates_page = pyqtSignal()
     open_network_drives_page = pyqtSignal()
 
@@ -161,13 +180,16 @@ class SetupWindow(QMainWindow):
         self.install_button = None
         self.remove_button = None
         self.apps_page_button = None
-        self.services_page_button = None
         self.updates_page_button = None
         self.network_drives_page_button = None
         self.add_network_drive_button = None
         self.network_drives_card = None
         self.network_drives_tree = None
         self.refresh_network_drives_button = None
+        self.mount_network_drive_button = None
+        self.unmount_network_drive_button = None
+        self.network_drive_thread = None
+        self.network_drive_worker = None
         self.install_paru_button = None
         # end buttons
         self.paru_status = None
@@ -178,7 +200,7 @@ class SetupWindow(QMainWindow):
         # main window
         self.main_window = None
         # Set the window title text
-        self.setWindowTitle("Arch advanced setup")
+        self.setWindowTitle("Linux-Manager")
         configure_main_window(self)
         self.init_ui()
 
@@ -224,6 +246,7 @@ class SetupWindow(QMainWindow):
         self.paru_layout.addWidget(self.paru_label, 1)
         self.paru_layout.addWidget(self.paru_status)
         self.paru_layout.addWidget(self.install_paru_button)
+        self.paru_card.setVisible(package_manager() == "pacman")
 
         # Update section
         self.update_card = QFrame()
@@ -280,9 +303,19 @@ class SetupWindow(QMainWindow):
         self.refresh_network_drives_button = QPushButton("Refresh")
         self.refresh_network_drives_button.clicked.connect(self.refresh_network_drives)
 
+        self.mount_network_drive_button = QPushButton("Mount Selected")
+        self.mount_network_drive_button.setEnabled(False)
+        self.mount_network_drive_button.clicked.connect(self.mount_selected_network_drive)
+        self.unmount_network_drive_button = QPushButton("Unmount Selected")
+        self.unmount_network_drive_button.setEnabled(False)
+        self.unmount_network_drive_button.clicked.connect(self.unmount_selected_network_drive)
+        self.network_drives_tree.currentItemChanged.connect(self.update_network_drive_actions)
+
         network_button_row = QHBoxLayout()
         network_button_row.setSpacing(12)
         network_button_row.addWidget(self.add_network_drive_button)
+        network_button_row.addWidget(self.mount_network_drive_button)
+        network_button_row.addWidget(self.unmount_network_drive_button)
         network_button_row.addWidget(self.refresh_network_drives_button)
         network_button_row.addStretch()
 
@@ -293,9 +326,6 @@ class SetupWindow(QMainWindow):
         # Apps page button
         self.apps_page_button = QPushButton("Apps")
         self.apps_page_button.clicked.connect(self.open_apps_page.emit)
-
-        self.services_page_button = QPushButton("Services")
-        self.services_page_button.clicked.connect(self.open_services_page.emit)
 
         self.updates_page_button = QPushButton("Updates")
         self.updates_page_button.clicked.connect(self.open_updates_page.emit)
@@ -323,9 +353,9 @@ class SetupWindow(QMainWindow):
         hero_layout = QVBoxLayout(hero)
         hero_layout.setContentsMargins(28, 22, 28, 22)
         hero_layout.setSpacing(6)
-        title = QLabel("Arch MySetup")
+        title = QLabel("Linux-Manager")
         title.setStyleSheet("font-size: 30px; font-weight: 800; color: #ffffff; background: transparent;")
-        subtitle = QLabel("Manage applications, system services, updates, and device settings.")
+        subtitle = QLabel("Manage applications, updates, and device settings.")
         subtitle.setStyleSheet("font-size: 15px; color: #f5f3ff; background: transparent;")
         hero_layout.addWidget(title)
         hero_layout.addWidget(subtitle)
@@ -334,12 +364,11 @@ class SetupWindow(QMainWindow):
         navigation_grid = QGridLayout()
         navigation_grid.setHorizontalSpacing(18)
         navigation_grid.setVerticalSpacing(18)
-        for column in range(3):
+        for column in range(2):
             navigation_grid.setColumnStretch(column, 1)
 
         destinations = [
             (self.apps_page_button, "Apps", "Install, remove, and organize applications."),
-            (self.services_page_button, "Services", "Manage system services and their state."),
             (self.updates_page_button, "Updates", "Update the app, install drivers, and set up Paru."),
             (self.network_drives_page_button, "Network Drives", "Add Samba shares and review mounted drives."),
             (self.advanced_tweak_btn, "Advanced Tweaks", "Configure desktop and system preferences."),
@@ -372,19 +401,10 @@ class SetupWindow(QMainWindow):
             card_layout.addLayout(action_row)
             return card
 
-        for column, destination in enumerate(destinations[:3]):
-            navigation_grid.addWidget(make_navigation_card(*destination), 0, column)
-        self.layout.addLayout(navigation_grid)
-
-        secondary_navigation = QHBoxLayout()
-        secondary_navigation.setSpacing(18)
-        secondary_navigation.addStretch(1)
-        for destination in destinations[3:]:
-            card = make_navigation_card(*destination)
-            card.setMaximumWidth(500)
-            secondary_navigation.addWidget(card, 1)
-        secondary_navigation.addStretch(1)
-        self.layout.addLayout(secondary_navigation)
+        for index, destination in enumerate(destinations):
+            row, column = divmod(index, 2)
+            navigation_grid.addWidget(make_navigation_card(*destination), row, column)
+        self.layout.addLayout(navigation_grid, 1)
         self.layout.addStretch(1)
 
         self.refresh_network_drives()
@@ -421,7 +441,19 @@ class SetupWindow(QMainWindow):
             return
 
         try:
-            run_sudo_command(["pacman", "-S", "--needed", "--noconfirm", *packages])
+            if package_manager() in {"dnf", "dnf5"}:
+                fedora_packages = {
+                    "mesa": "mesa-dri-drivers", "lib32-mesa": "mesa-dri-drivers.i686",
+                    "vulkan-intel": "mesa-vulkan-drivers", "lib32-vulkan-intel": "mesa-vulkan-drivers.i686",
+                    "vulkan-radeon": "mesa-vulkan-drivers", "lib32-vulkan-radeon": "mesa-vulkan-drivers.i686",
+                    "nvidia": "akmod-nvidia", "nvidia-utils": "xorg-x11-drv-nvidia-cuda",
+                    "lib32-nvidia-utils": "xorg-x11-drv-nvidia-libs.i686",
+                    "xf86-video-intel": "xorg-x11-drv-intel", "xf86-video-amdgpu": "xorg-x11-drv-amdgpu",
+                }
+                packages = list(dict.fromkeys(fedora_packages.get(package, package) for package in packages))
+                run_sudo_command([package_manager(), "install", "-y", *packages])
+            else:
+                run_sudo_command(["pacman", "-S", "--needed", "--noconfirm", *packages])
             QMessageBox.information(self, "Success", f"{vendor} driver packages installed.")
             self.update_gpu_status()
         except RuntimeError as e:
@@ -521,6 +553,7 @@ class SetupWindow(QMainWindow):
             item.setToolTip(0, drive["raw"])
             item.setToolTip(3, drive["options"])
             item.setToolTip(4, size_text)
+            item.setData(1, Qt.UserRole, mounted)
             if mounted:
                 item.setForeground(4, QBrush(QColor("#4CAF50")))
             else:
@@ -529,10 +562,59 @@ class SetupWindow(QMainWindow):
         self.network_drives_tree.setUpdatesEnabled(True)
         for col in range(self.network_drives_tree.columnCount()):
             self.network_drives_tree.resizeColumnToContents(col)
+        self.update_network_drive_actions(self.network_drives_tree.currentItem(), None)
 
-    def open_app_installer(self):
-        self.app_installer_callback()
-        self.close()
+    def update_network_drive_actions(self, current, _previous):
+        has_drive = current is not None and current.data(1, Qt.UserRole) is not None
+        mounted = bool(current.data(1, Qt.UserRole)) if has_drive else False
+        busy = self.network_drive_thread is not None and self.network_drive_thread.isRunning()
+        self.mount_network_drive_button.setEnabled(has_drive and not mounted and not busy)
+        self.unmount_network_drive_button.setEnabled(has_drive and mounted and not busy)
+
+    def mount_selected_network_drive(self):
+        self.run_network_drive_action("mount")
+
+    def unmount_selected_network_drive(self):
+        self.run_network_drive_action("unmount")
+
+    def run_network_drive_action(self, operation):
+        item = self.network_drives_tree.currentItem()
+        if item is None or item.data(1, Qt.UserRole) is None:
+            QMessageBox.warning(self, "Select a Drive", "Select a configured network drive first.")
+            return
+        if self.network_drive_thread and self.network_drive_thread.isRunning():
+            return
+
+        mount_point = item.text(1)
+        self.mount_network_drive_button.setEnabled(False)
+        self.unmount_network_drive_button.setEnabled(False)
+        self.network_drive_thread = QThread(self)
+        self.network_drive_worker = NetworkDriveActionWorker(mount_point, operation)
+        self.network_drive_worker.moveToThread(self.network_drive_thread)
+        self.network_drive_thread.started.connect(self.network_drive_worker.run)
+        self.network_drive_worker.finished.connect(self.on_network_drive_action_finished)
+        self.network_drive_worker.error.connect(self.on_network_drive_action_error)
+        self.network_drive_worker.finished.connect(self.network_drive_thread.quit)
+        self.network_drive_worker.error.connect(self.network_drive_thread.quit)
+        self.network_drive_worker.finished.connect(self.network_drive_worker.deleteLater)
+        self.network_drive_worker.error.connect(self.network_drive_worker.deleteLater)
+        self.network_drive_thread.finished.connect(self.network_drive_thread.deleteLater)
+        self.network_drive_thread.finished.connect(self.cleanup_network_drive_action)
+        self.network_drive_thread.start()
+
+    def on_network_drive_action_finished(self, mount_point, operation):
+        self.refresh_network_drives()
+        action = "mounted" if operation == "mount" else "unmounted"
+        QMessageBox.information(self, "Network Drive", f"{mount_point} was {action}.")
+
+    def on_network_drive_action_error(self, message):
+        self.refresh_network_drives()
+        QMessageBox.critical(self, "Network Drive Error", message)
+
+    def cleanup_network_drive_action(self):
+        self.network_drive_thread = None
+        self.network_drive_worker = None
+        self.update_network_drive_actions(self.network_drives_tree.currentItem(), None)
 
     def start_update_check(self):
         if self.update_check_thread and self.update_check_thread.isRunning():
@@ -582,7 +664,7 @@ class SetupWindow(QMainWindow):
             self.start_update_check()
             return
 
-        updater_command = shutil.which("arch-mysetup-update")
+        updater_command = shutil.which("linux-manager-update") or shutil.which("arch-mysetup-update")
         if updater_command:
             command = [updater_command]
         else:
@@ -627,6 +709,14 @@ class SetupWindow(QMainWindow):
         button.update()
 
     def closeEvent(self, event):
+        if self.network_drive_thread and self.network_drive_thread.isRunning():
+            QMessageBox.information(
+                self,
+                "Network Drive Action Running",
+                "Wait for the network drive operation to finish before closing.",
+            )
+            event.ignore()
+            return
         if self.update_check_thread and self.update_check_thread.isRunning():
             self.update_check_thread.quit()
             self.update_check_thread.wait(1500)

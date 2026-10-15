@@ -43,7 +43,7 @@ class RemoveOperationWorker(QObject):
 
     def run(self):
         try:
-            process = remove_apps(self.apps, "paru")
+            process = remove_apps(self.apps, "pacman")
             if not process:
                 raise RuntimeError("Could not start the uninstall command.")
             if hasattr(process, "wait") and process.wait() != 0:

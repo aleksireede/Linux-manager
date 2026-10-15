@@ -1,5 +1,5 @@
-# arch-mysetup
-Setup files to get the arch linux I want (in case I have to install it again sometime)
+# Linux-Manager
+Cross-distro Linux setup and application manager.
 
     wget -qO- https://raw.githubusercontent.com/aleksireede/arch-mysetup/refs/heads/main/main/setup.sh | bash
 

@@ -100,30 +100,33 @@ extract() {
 # Package management
 # -----------------------------------------------------------------------------
 
-alias grubup='sudo update-grub'
-alias upd='garuda-update'
-
-fixpacman() {
-    sudo rm -f /var/lib/pacman/db.lck
-}
-
-cleanup() {
-    local orphans
-    orphans=$(pacman -Qtdq)
-
-    if [[ -n "$orphans" ]]; then
-        sudo pacman -Rns "$orphans"
-    else
-        echo "No orphan packages."
-    fi
-}
-
-alias rmpkg='sudo pacman -Rdd'
+if command -v pacman >/dev/null 2>&1; then
+    alias grubup='sudo update-grub'
+    alias upd='sudo pacman -Syu'
+    fixpacman() { sudo rm -f /var/lib/pacman/db.lck; }
+    cleanup() {
+        local orphans
+        orphans=$(pacman -Qtdq)
+        if [[ -n "$orphans" ]]; then
+            sudo pacman -Rns $orphans
+        else
+            echo "No orphan packages."
+        fi
+    }
+    alias rmpkg='sudo pacman -Rdd'
+elif command -v dnf5 >/dev/null 2>&1; then
+    alias upd='sudo dnf5 upgrade --refresh -y'
+    cleanup() { sudo dnf5 autoremove -y; }
+elif command -v dnf >/dev/null 2>&1; then
+    alias upd='sudo dnf upgrade --refresh -y'
+    cleanup() { sudo dnf autoremove -y; }
+fi
 
 # -----------------------------------------------------------------------------
 # Reflector
 # -----------------------------------------------------------------------------
 
+if command -v pacman >/dev/null 2>&1 && command -v reflector >/dev/null 2>&1; then
 alias mirror='sudo reflector \
     --country Finland,Sweden,Estonia,Germany \
     --protocol https \
@@ -143,6 +146,7 @@ alias mirrorworld='sudo reflector \
     --latest 30 \
     --sort rate \
     --save /etc/pacman.d/mirrorlist'
+fi
 
 # -----------------------------------------------------------------------------
 # System information
@@ -156,20 +160,38 @@ alias psmem10='ps auxf | sort -nr -k4 | head'
 
 alias jctl='journalctl -p3 -xb'
 
-alias big="expac -H M '%m\t%n' | sort -h | nl"
-alias gitpkg='pacman -Q | grep "\-git" | wc -l'
-alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
+if command -v pacman >/dev/null 2>&1; then
+    alias big="expac -H M '%m\t%n' | sort -h | nl"
+    alias gitpkg='pacman -Q | grep "\-git" | wc -l'
+    alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
+elif command -v dnf5 >/dev/null 2>&1; then
+    alias big='dnf5 repoquery --installed --qf "%{size}\t%{name}" | sort -h | nl'
+    alias gitpkg='rpm -qa | grep -- "-git" | wc -l'
+elif command -v dnf >/dev/null 2>&1; then
+    alias big='dnf repoquery --installed --qf "%{size}\t%{name}" | sort -h | nl'
+    alias gitpkg='rpm -qa | grep -- "-git" | wc -l'
+fi
 
 # -----------------------------------------------------------------------------
 # Misc
 # -----------------------------------------------------------------------------
 
-alias apt='man pacman'
-alias apt-get='man pacman'
+if command -v pacman >/dev/null 2>&1; then
+    alias apt='man pacman'
+    alias apt-get='man pacman'
+elif command -v dnf5 >/dev/null 2>&1; then
+    alias apt='man dnf5'
+    alias apt-get='man dnf5'
+elif command -v dnf >/dev/null 2>&1; then
+    alias apt='man dnf'
+    alias apt-get='man dnf'
+fi
 alias please='sudo'
 alias tb='nc termbin.com 9999'
 alias helpme='cht.sh --shell'
-alias pacdiff='sudo -H DIFFPROG=meld pacdiff'
+if command -v pacdiff >/dev/null 2>&1; then
+    alias pacdiff='sudo -H DIFFPROG=meld pacdiff'
+fi
 
 # -----------------------------------------------------------------------------
 # Personal configuration
