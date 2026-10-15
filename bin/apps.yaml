@@ -83,6 +83,16 @@
   source: pacman
   category: System utils
   conflicts: []
+- name: brave-bin
+  description: Chromium-based browser with built-in privacy defaults from the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+- name: chromium
+  description: Open source Chromium browser package from the Arch repositories.
+  source: pacman
+  category: Browsers
+  conflicts: []
 - name: cowsay-bin
   description: Default description for cowsay-bin
   source: paru
@@ -158,6 +168,16 @@
   source: Unknown
   category: System utils
   conflicts: []
+- name: firedragon
+  description: Floorp-based browser build distributed for Arch through the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+- name: firefox
+  description: Mozilla web browser focused on standards support and privacy.
+  source: pacman
+  category: Browsers
+  conflicts: []
 - name: fontconfig
   description: Default description for fontconfig
   source: Unknown
@@ -203,6 +223,11 @@
   source: Unknown
   category: System utils
   conflicts: []
+- name: google-chrome
+  description: Official Google Chrome browser package from the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
 - name: goverlay
   description: Default description for goverlay
   source: pacman
@@ -232,6 +257,11 @@
   description: Default description for jdk-openjdk
   source: Unknown
   category: System utils
+  conflicts: []
+- name: jetbrains-toolbox
+  description: JetBrains launcher for installing and updating IDEs and tools.
+  source: paru
+  category: Developer Tools
   conflicts: []
 - name: kcalc
   description: Default description for kcalc
@@ -533,6 +563,11 @@
   source: Unknown
   category: System utils
   conflicts: []
+- name: opera
+  description: Chromium-based browser with built-in messaging and VPN features.
+  source: paru
+  category: Browsers
+  conflicts: []
 - name: partitionmanager
   description: Default description for partitionmanager
   source: pacman
@@ -688,6 +723,11 @@
   source: pacman
   category: System utils
   conflicts: []
+- name: rust
+  description: Default description for rust
+  source: pacman
+  category: System utils
+  conflicts: []
 - name: samba
   description: Default description for samba
   source: pacman
@@ -738,6 +778,11 @@
   source: Unknown
   category: Utilities
   conflicts: []
+- name: tor-browser-bin
+  description: Tor Browser bundle packaged for Arch through the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
 - name: tree
   description: Default description for tree
   source: pacman
@@ -762,6 +807,11 @@
   description: Default description for visual-studio-code-bin
   source: paru
   category: Developer Tools
+  conflicts: []
+- name: vivaldi
+  description: Feature-heavy Chromium-based browser package from the Arch repositories.
+  source: pacman
+  category: Browsers
   conflicts: []
 - name: vkbasalt
   description: Default description for vkbasalt
@@ -802,49 +852,4 @@
   description: Default description for zenmap
   source: pacman
   category: Utilities
-  conflicts: []
-- name: brave-bin
-  description: Chromium-based browser with built-in privacy defaults from the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-- name: firedragon
-  description: Floorp-based browser build distributed for Arch through the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-- name: firefox
-  description: Mozilla web browser focused on standards support and privacy.
-  source: pacman
-  category: Browsers
-  conflicts: []
-- name: google-chrome
-  description: Official Google Chrome browser package from the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-- name: chromium
-  description: Open source Chromium browser package from the Arch repositories.
-  source: pacman
-  category: Browsers
-  conflicts: []
-- name: jetbrains-toolbox
-  description: JetBrains launcher for installing and updating IDEs and tools.
-  source: paru
-  category: Developer Tools
-  conflicts: []
-- name: opera
-  description: Chromium-based browser with built-in messaging and VPN features.
-  source: paru
-  category: Browsers
-  conflicts: []
-- name: tor-browser-bin
-  description: Tor Browser bundle packaged for Arch through the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-- name: vivaldi
-  description: Feature-heavy Chromium-based browser package from the Arch repositories.
-  source: pacman
-  category: Browsers
   conflicts: []
