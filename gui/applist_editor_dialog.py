@@ -1,23 +1,21 @@
 import subprocess
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout, \
-    QListWidgetItem
+    QListWidgetItem, QWidget, QToolButton, QLabel, QStyle, QComboBox, QLineEdit, QDialogButtonBox, QSizePolicy
 
-from programs.apps_file import add_app_to_yaml, get_app_source, remove_app_from_yaml
+from programs.apps_file import add_app_to_yaml, load_yaml, set_apps_category
 from programs.installer_logic import (
     command_exists,
-    detect_installed_method,
-    get_install_method_from_source,
-    is_app_installed,
-    remove_apps,
 )
 try:
     from .theme import configure_dialog
+    from .category_list import add_category_header
 except ImportError:
     from theme import configure_dialog
+    from category_list import add_category_header
 
 
 class AppListEditorDialog(QDialog):
@@ -28,6 +26,8 @@ class AppListEditorDialog(QDialog):
         configure_dialog(self, width=620, height=720, min_width=560, min_height=640)
         self.selected_item = None
         self.apps = apps
+        self.collapsed_categories = set()
+        self.category_apps = {}
         self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
 
         # use vertical box layout
@@ -51,6 +51,9 @@ class AppListEditorDialog(QDialog):
         remove_btn = QPushButton("Remove Selected", self)
         remove_btn.clicked.connect(self.remove_selected)
 
+        category_btn = QPushButton("Change Category", self)
+        category_btn.clicked.connect(self.change_category)
+
         # Search button
         search_btn = QPushButton("Search", self)
         search_btn.setIcon(QIcon(str(self.search_icon_path)))
@@ -68,6 +71,7 @@ class AppListEditorDialog(QDialog):
         button_layout.addWidget(add_btn)
         button_layout.addWidget(search_btn)
         button_layout.addWidget(remove_btn)
+        button_layout.addWidget(category_btn)
         button_layout.addSpacing(15)
         button_layout.addWidget(ok_btn)
         button_layout.addWidget(cancel_btn)
@@ -78,92 +82,132 @@ class AppListEditorDialog(QDialog):
 
     def populate_list(self):
         self.list_widget.clear()
-        for app in sorted(self.apps):
-            item = QListWidgetItem(app)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            item.setCheckState(Qt.CheckState.Unchecked)
-            self.list_widget.addItem(item)
+        app_categories = {}
+        for entry in load_yaml():
+            if entry.get("name"):
+                app_categories[entry["name"]] = str(entry.get("category") or "Universal").strip() or "Universal"
+        grouped = {}
+        for app in self.apps:
+            grouped.setdefault(app_categories.get(app, "Universal"), []).append(app)
+        self.category_apps = {category: set(apps) for category, apps in grouped.items()}
+
+        for category in sorted(grouped, key=str.casefold):
+            add_category_header(
+                self.list_widget,
+                category,
+                category in self.collapsed_categories,
+                self.toggle_category,
+                self.toggle_category_apps,
+            )
+
+            for app in sorted(grouped[category], key=str.casefold):
+                item = QListWidgetItem(f"    {app}")
+                item.setData(Qt.ItemDataRole.UserRole, app)
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                item.setCheckState(Qt.CheckState.Unchecked)
+                self.list_widget.addItem(item)
+                item.setHidden(category in self.collapsed_categories)
+
+    def toggle_category_apps(self, category):
+        apps = self.category_apps.get(category, set())
+        items = [
+            self.list_widget.item(index) for index in range(self.list_widget.count())
+            if self.list_widget.item(index).data(Qt.ItemDataRole.UserRole) in apps
+        ]
+        check = not items or not all(item.checkState() == Qt.CheckState.Checked for item in items)
+        for item in items:
+            item.setCheckState(Qt.CheckState.Checked if check else Qt.CheckState.Unchecked)
+
+    def toggle_category(self, category):
+        if category in self.collapsed_categories:
+            self.collapsed_categories.remove(category)
+        else:
+            self.collapsed_categories.add(category)
+        self.populate_list()
+
+    def change_category(self):
+        selected_apps = self.get_checked_apps()
+        if not selected_apps:
+            QMessageBox.information(self, "No selection", "Check one or more apps to change their category.")
+            return
+        categories = sorted({
+            str(app.get("category") or "Universal").strip() or "Universal"
+            for app in load_yaml() if isinstance(app, dict)
+        }, key=str.casefold)
+        if "Universal" not in categories:
+            categories.insert(0, "Universal")
+        category, ok = QInputDialog.getItem(
+            self, "Change Category", "Category (type a new name to create it):", categories, 0, True
+        )
+        if not ok:
+            return
+        category = category.strip()
+        if not category:
+            QMessageBox.information(self, "Change Category", "Please enter a category name.")
+            return
+        set_apps_category(selected_apps, category)
+        self.populate_list()
 
     def get_checked_apps(self):
         checked_apps = []
         for index in range(self.list_widget.count()):
             item = self.list_widget.item(index)
             if item.checkState() == Qt.CheckState.Checked:
-                checked_apps.append(item.text())
+                checked_apps.append(item.data(Qt.ItemDataRole.UserRole) or item.text().strip())
         return checked_apps
 
     def remove_selected(self):
         selected_apps = self.get_checked_apps()
         if not selected_apps:
             QMessageBox.information(
-                self, "No selection", "Please check at least one application to remove.")
+                self, "No selection", "Please check at least one application to move.")
             return
         confirm = QMessageBox.question(
             self,
-            "Confirm Removal",
-            "Remove the selected applications from the application list and try to uninstall them from the system?\n"
+            "Move to Uninstall",
+            "Move the selected applications to the Uninstall category? This will not uninstall them yet.\n"
             f"{', '.join(selected_apps)}",
             QMessageBox.Yes | QMessageBox.No
         )
         if confirm == QMessageBox.Yes:
-            removal_groups = {"pacman": [], "paru": []}
-            not_installed = []
-            unknown_source = []
-
-            for app_name in selected_apps:
-                source = get_app_source(app_name)
-                remove_method = get_install_method_from_source(source)
-                if remove_method is None:
-                    remove_method = detect_installed_method(app_name)
-
-                if app_name in self.apps:
-                    self.apps.remove(app_name)
-                remove_app_from_yaml(app_name)
-
-                if not is_app_installed(app_name):
-                    not_installed.append(app_name)
-                    continue
-
-                if remove_method is None:
-                    unknown_source.append(app_name)
-                    continue
-
-                removal_groups[remove_method].append(app_name)
-
+            set_apps_category(selected_apps, "Uninstall")
             self.populate_list()
-
-            started_uninstalls = []
-            failed_uninstalls = []
-            for method, apps in removal_groups.items():
-                if not apps:
-                    continue
-                process = remove_apps(apps, method)
-                if process:
-                    started_uninstalls.extend(f"{app} ({method})" for app in apps)
-                else:
-                    failed_uninstalls.extend(apps)
-
-            messages = [f"Removed from list: {', '.join(selected_apps)}"]
-            if started_uninstalls:
-                messages.append(f"Uninstall started: {', '.join(started_uninstalls)}")
-            if not_installed:
-                messages.append(f"Not installed: {', '.join(not_installed)}")
-            if unknown_source:
-                messages.append(f"Could not determine uninstall source: {', '.join(unknown_source)}")
-            if failed_uninstalls:
-                messages.append(f"Could not start uninstall command: {', '.join(failed_uninstalls)}")
-
-            if failed_uninstalls or unknown_source:
-                QMessageBox.warning(self, "Removal Summary", "\n".join(messages))
-            else:
-                QMessageBox.information(self, "Removal Summary", "\n".join(messages))
+            QMessageBox.information(
+                self, "Moved to Uninstall", f"Moved to the Uninstall category: {', '.join(selected_apps)}"
+            )
 
     def add_apps(self):
         """Open a dialog to add one or more apps, checking availability first."""
-        new_apps_text, ok = QInputDialog.getText(
-            self, "Add Application", "Enter application names separated by commas:"
-        )
-        if not ok:
+        categories = sorted({
+            str(app.get("category", "Universal")).strip() or "Universal"
+            for app in load_yaml() if isinstance(app, dict)
+        }, key=str.casefold)
+        if "Universal" not in categories:
+            categories.insert(0, "Universal")
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Application")
+        dialog_layout = QVBoxLayout(dialog)
+        dialog_layout.addWidget(QLabel("Application names (separate multiple names with commas):", dialog))
+        app_names_input = QLineEdit(dialog)
+        dialog_layout.addWidget(app_names_input)
+        dialog_layout.addWidget(QLabel("Category (choose one or type a new category name):", dialog))
+        category_selector = QComboBox(dialog)
+        category_selector.setEditable(True)
+        category_selector.addItems(categories)
+        category_selector.setCurrentText("Universal")
+        dialog_layout.addWidget(category_selector)
+        dialog_buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, dialog)
+        dialog_buttons.accepted.connect(dialog.accept)
+        dialog_buttons.rejected.connect(dialog.reject)
+        dialog_layout.addWidget(dialog_buttons)
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        new_apps_text = app_names_input.text()
+        category = category_selector.currentText().strip()
+        if not category:
+            QMessageBox.information(self, "Choose Category", "Please enter a category name.")
             return
 
         requested_apps = []
@@ -213,7 +257,7 @@ class AppListEditorDialog(QDialog):
 
             if available_in:
                 self.apps.append(new_app)
-                add_app_to_yaml(new_app)
+                add_app_to_yaml(new_app, category)
                 added_apps.append(f"{new_app} ({', '.join(available_in)})")
             else:
                 not_found_apps.append(new_app)

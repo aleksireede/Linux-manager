@@ -1,17 +1,17 @@
 - name: 7zip
   description: Default description for 7zip
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: alsa-plugins
   description: Default description for alsa-plugins
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: amd-ucode
   description: Default description for amd-ucode
   source: Unknown
-  category: Utilities
+  category: AMD
   conflicts: []
 - name: ananicy-cpp
   description: Default description for ananicy-cpp
@@ -26,27 +26,27 @@
 - name: aocc
   description: Default description for aocc
   source: Unknown
-  category: Utilities
+  category: AMD
   conflicts: []
 - name: aocl-aocc
   description: Default description for aocl-aocc
   source: Unknown
-  category: Utilities
+  category: AMD
   conflicts: []
 - name: apple-fonts
   description: Default description for apple-fonts
   source: Unknown
-  category: Utilities
+  category: Fonts
   conflicts: []
 - name: ark
   description: Default description for ark
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: awesome-terminal-fonts
   description: Default description for awesome-terminal-fonts
   source: Unknown
-  category: Utilities
+  category: Fonts
   conflicts: []
 - name: balena-etcher
   description: Default description for balena-etcher
@@ -56,42 +56,42 @@
 - name: base-devel
   description: Default description for base-devel
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: bind
   description: Default description for bind
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: binwalk
   description: Default description for binwalk
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: bluedevil
   description: Default description for bluedevil
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: bluez
   description: Default description for bluez
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: bluez-utils
   description: Default description for bluez-utils
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: cowsay-bin
   description: Default description for cowsay-bin
   source: paru
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: dolphin
   description: Default description for dolphin
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: dolphin-emu
   description: Default description for dolphin-emu
@@ -101,67 +101,72 @@
 - name: dolphin-plugins
   description: Default description for dolphin-plugins
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: dos2unix
   description: Default description for dos2unix
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: dosfstools
   description: Default description for dosfstools
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: efibootmgr
   description: Default description for efibootmgr
   source: pacman
+  category: System utils
+  conflicts: []
+- name: epic-games-launcher-bin
+  description: Default description for epic-games-launcher-bin
+  source: paru
   category: Utilities
   conflicts: []
 - name: expac
   description: Default description for expac
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: eza
   description: Default description for eza
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: fastfetch
   description: Default description for fastfetch
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: faudio
   description: Default description for faudio
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: fd
   description: Default description for fd
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: ffmpeg
   description: Default description for ffmpeg
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: ffmpegthumbs
   description: Default description for ffmpegthumbs
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: fontconfig
   description: Default description for fontconfig
   source: Unknown
-  category: Utilities
+  category: Fonts
   conflicts: []
 - name: fortune-mod
   description: Default description for fortune-mod
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: gamemode
   description: Default description for gamemode
@@ -171,12 +176,12 @@
 - name: ghex
   description: Default description for ghex
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: giflib
   description: Default description for giflib
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: gimp
   description: Default description for gimp
@@ -186,17 +191,17 @@
 - name: git
   description: Default description for git
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: glfw
   description: Default description for glfw
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: glow
   description: Default description for glow
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: goverlay
   description: Default description for goverlay
@@ -206,47 +211,42 @@
 - name: gstreamer
   description: Default description for gstreamer
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: i2c-tools
   description: Default description for i2c-tools
   source: Unknown
-  category: Utilities
-  conflicts: []
-- name: ifuse
-  description: Default description for ifuse
-  source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: imagemagick
   description: Default description for imagemagick
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: irqbalance
   description: Default description for irqbalance
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: jdk-openjdk
   description: Default description for jdk-openjdk
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: kcalc
   description: Default description for kcalc
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: kde-gtk-config
   description: Default description for kde-gtk-config
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: kdegraphics-thumbnailers
   description: Default description for kdegraphics-thumbnailers
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: keepassxc
   description: Default description for keepassxc
@@ -256,47 +256,52 @@
 - name: kimageformats
   description: Default description for kimageformats
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: kio-admin
   description: Default description for kio-admin
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: kio-extras
   description: Default description for kio-extras
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: kio-fuse
   description: Default description for kio-fuse
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: konsole
   description: Default description for konsole
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: kscreen
   description: Default description for kscreen
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: kwallet
   description: Default description for kwallet
   source: pacman
-  category: Utilities
+  category: KDE
+  conflicts: []
+- name: kwallet-pam
+  description: Default description for kwallet-pam
+  source: pacman
+  category: KDE
   conflicts: []
 - name: kwalletmanager
   description: Default description for kwalletmanager
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: less
   description: Default description for less
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: lib32-alsa-plugins
   description: Default description for lib32-alsa-plugins
@@ -356,7 +361,7 @@
 - name: lib32-mesa
   description: Default description for lib32-mesa
   source: pacman
-  category: Utilities
+  category: AMD
   conflicts: []
 - name: lib32-mpg123
   description: Default description for lib32-mpg123
@@ -381,17 +386,12 @@
 - name: lib32-vulkan-radeon
   description: Default description for lib32-vulkan-radeon
   source: pacman
-  category: Utilities
-  conflicts: []
-- name: libimobiledevice
-  description: Default description for libimobiledevice
-  source: pacman
-  category: Utilities
+  category: AMD
   conflicts: []
 - name: libjpeg-turbo
   description: Default description for libjpeg-turbo
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: libreoffice-fresh
   description: Default description for libreoffice-fresh
@@ -401,7 +401,7 @@
 - name: linux-firmware-amdgpu
   description: Default description for linux-firmware-amdgpu
   source: Unknown
-  category: Utilities
+  category: AMD
   conflicts: []
 - name: linux-zen
   description: Default description for linux-zen
@@ -416,7 +416,7 @@
 - name: lm_sensors
   description: Default description for lm_sensors
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: localsend-bin
   description: Default description for localsend-bin
@@ -426,12 +426,17 @@
 - name: lolcat
   description: Default description for lolcat
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: lsp-plugins
   description: Default description for lsp-plugins
   source: Unknown
-  category: Utilities
+  category: System utils
+  conflicts: []
+- name: lutris
+  description: Default description for lutris
+  source: pacman
+  category: Games
   conflicts: []
 - name: makemkv
   description: Default description for makemkv
@@ -441,7 +446,7 @@
 - name: makepkg-optimize-mold
   description: Default description for makepkg-optimize-mold
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: mangohud
   description: Default description for mangohud
@@ -451,22 +456,22 @@
 - name: maven
   description: Default description for maven
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: memavaild
   description: Default description for memavaild
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: mesa
   description: Default description for mesa
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: mesa-utils
   description: Default description for mesa-utils
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: mission-center
   description: Default description for mission-center
@@ -481,132 +486,142 @@
 - name: nodejs
   description: Default description for nodejs
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: noto-fonts
   description: Default description for noto-fonts
   source: Unknown
-  category: Utilities
+  category: Fonts
   conflicts: []
 - name: noto-fonts-cjk
   description: Default description for noto-fonts-cjk
   source: Unknown
-  category: Utilities
+  category: Fonts
   conflicts: []
 - name: noto-fonts-extra
   description: Default description for noto-fonts-extra
   source: Unknown
-  category: Utilities
+  category: Fonts
   conflicts: []
 - name: npm
   description: Default description for npm
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: ntfs-3g
   description: Default description for ntfs-3g
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: ntfsprogs
   description: Default description for ntfsprogs
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: ocs-url
   description: Default description for ocs-url
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: okular
   description: Default description for okular
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: openal
   description: Default description for openal
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: partitionmanager
   description: Default description for partitionmanager
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: pipewire
   description: Default description for pipewire
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: pipewire-alsa
   description: Default description for pipewire-alsa
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: pipewire-audio
   description: Default description for pipewire-audio
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: pipewire-jack
   description: Default description for pipewire-jack
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: pipewire-pulse
   description: Default description for pipewire-pulse
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: pipewire-v4l2
   description: Default description for pipewire-v4l2
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: pipewire-zeroconf
   description: Default description for pipewire-zeroconf
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: plasma-desktop
   description: Default description for plasma-desktop
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: plasma-nm
   description: Default description for plasma-nm
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: plasma-pa
   description: Default description for plasma-pa
   source: pacman
-  category: Utilities
+  category: KDE
+  conflicts: []
+- name: plasma-wallpaper-waywallen
+  description: Default description for plasma-wallpaper-waywallen
+  source: paru
+  category: KDE
   conflicts: []
 - name: plasma-workspace
   description: Default description for plasma-workspace
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: plymouth-kcm
   description: Default description for plymouth-kcm
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: png2svg
   description: Default description for png2svg
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: power-profiles-daemon
   description: Default description for power-profiles-daemon
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: preload
   description: Default description for preload
   source: Unknown
-  category: Utilities
+  category: System utils
+  conflicts: []
+- name: prismlauncher
+  description: Default description for prismlauncher
+  source: pacman
+  category: Games
   conflicts: []
 - name: protonplus
   description: Default description for protonplus
@@ -661,57 +676,57 @@
 - name: refind
   description: Default description for refind
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: reflector
   description: Default description for reflector
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: ripgrep
   description: Default description for ripgrep
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: samba
   description: Default description for samba
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: sbctl
   description: Default description for sbctl
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: scx-scheds
   description: Default description for scx-scheds
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: sddm
   description: Default description for sddm
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: sddm-kcm
   description: Default description for sddm-kcm
   source: pacman
-  category: Utilities
-  conflicts: []
-- name: snapchat
-  description: Default description for snapchat
-  source: Unknown
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: spectacle
   description: Default description for spectacle
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: spotify-launcher
   description: Default description for spotify-launcher
   source: pacman
   category: Utilities
+  conflicts: []
+- name: steam
+  description: Default description for steam
+  source: pacman
+  category: Games
   conflicts: []
 - name: syncthing-bin
   description: Default description for syncthing-bin
@@ -726,60 +741,110 @@
 - name: tree
   description: Default description for tree
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: ttf-ms-fonts
   description: Default description for ttf-ms-fonts
   source: Unknown
-  category: Utilities
+  category: Fonts
   conflicts: []
 - name: ufw-extras
   description: Default description for ufw-extras
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: usbmuxd
   description: Default description for usbmuxd
   source: pacman
-  category: Utilities
+  category: System utils
   conflicts: []
-- name: vesktop-bin
-  description: Default description for vesktop-bin
-  source: Unknown
-  category: Utilities
+- name: visual-studio-code-bin
+  description: Default description for visual-studio-code-bin
+  source: paru
+  category: Developer Tools
   conflicts: []
 - name: vkbasalt
   description: Default description for vkbasalt
   source: paru
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: vulkan-radeon
   description: Default description for vulkan-radeon
   source: pacman
-  category: Utilities
+  category: AMD
   conflicts: []
 - name: vulkan-tools
   description: Default description for vulkan-tools
   source: pacman
+  category: AMD
+  conflicts: []
+- name: waywallen
+  description: Default description for waywallen
+  source: paru
   category: Utilities
   conflicts: []
 - name: wireplumber
   description: Default description for wireplumber
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
 - name: xdg-desktop-portal-kde
   description: Default description for xdg-desktop-portal-kde
   source: pacman
-  category: Utilities
+  category: KDE
   conflicts: []
 - name: xpadneo-dkms
   description: Default description for xpadneo-dkms
   source: Unknown
-  category: Utilities
+  category: System utils
   conflicts: []
 - name: zenmap
   description: Default description for zenmap
   source: pacman
   category: Utilities
+  conflicts: []
+- name: brave-bin
+  description: Chromium-based browser with built-in privacy defaults from the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+- name: firedragon
+  description: Floorp-based browser build distributed for Arch through the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+- name: firefox
+  description: Mozilla web browser focused on standards support and privacy.
+  source: pacman
+  category: Browsers
+  conflicts: []
+- name: google-chrome
+  description: Official Google Chrome browser package from the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+- name: chromium
+  description: Open source Chromium browser package from the Arch repositories.
+  source: pacman
+  category: Browsers
+  conflicts: []
+- name: jetbrains-toolbox
+  description: JetBrains launcher for installing and updating IDEs and tools.
+  source: paru
+  category: Developer Tools
+  conflicts: []
+- name: opera
+  description: Chromium-based browser with built-in messaging and VPN features.
+  source: paru
+  category: Browsers
+  conflicts: []
+- name: tor-browser-bin
+  description: Tor Browser bundle packaged for Arch through the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+- name: vivaldi
+  description: Feature-heavy Chromium-based browser package from the Arch repositories.
+  source: pacman
+  category: Browsers
   conflicts: []

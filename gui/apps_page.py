@@ -5,7 +5,9 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QMessageBox,
+    QStyle,
 )
+from PyQt5.QtCore import QSize
 
 from programs.apps_file import load_apps_from_file
 from programs.installer_logic import open_terminal
@@ -56,6 +58,16 @@ class AppsPage(QMainWindow):
         editor_btn = QPushButton("Open App List Editor")
         editor_btn.setFixedWidth(self.BUTTON_WIDTH)
         editor_btn.clicked.connect(self.open_app_list_editor)
+
+        button_icons = (
+            (install_btn, QStyle.SP_ArrowDown),
+            (uninstall_btn, QStyle.SP_TrashIcon),
+            (update_btn, QStyle.SP_BrowserReload),
+            (editor_btn, QStyle.SP_FileDialogDetailedView),
+        )
+        for button, icon_type in button_icons:
+            button.setIcon(self.style().standardIcon(icon_type))
+            button.setIconSize(QSize(22, 22))
 
         for btn in (install_btn, uninstall_btn, update_btn, editor_btn):
             row = QHBoxLayout()

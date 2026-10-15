@@ -10,9 +10,11 @@ from programs.installer_logic import (
 )
 
 try:
+    from .category_list import add_category_header
     from .ui_helpers import create_back_button, create_select_refresh_row
     from .theme import configure_main_window, create_page_header
 except ImportError:
+    from category_list import add_category_header
     from ui_helpers import create_back_button, create_select_refresh_row
     from theme import configure_main_window, create_page_header
 
@@ -81,7 +83,9 @@ class ArchAppInstaller(QMainWindow):
         self.setWindowTitle("Arch App Installer")
         configure_main_window(self)
         self.apps = []
+        self.uninstalled_apps = []
         self.selected_apps = []
+        self.collapsed_categories = set()
         self.init_ui()
         self.load_apps_async()
 
@@ -243,6 +247,25 @@ class ArchAppInstaller(QMainWindow):
                 item.setCheckState(
                     Qt.CheckState.Unchecked if all_selected else Qt.CheckState.Checked)
 
+    def toggle_category(self, category):
+        app_categories = {
+            app.get("name"): str(app.get("category") or "Universal").strip() or "Universal"
+            for app in load_yaml() if app.get("name")
+        }
+        items = [self.list_widget.item(i) for i in range(self.list_widget.count())
+                 if self.list_widget.item(i).flags() & Qt.ItemFlag.ItemIsUserCheckable
+                 and app_categories.get(self.list_widget.item(i).text(), "Universal") == category]
+        check = not items or not all(item.checkState() == Qt.CheckState.Checked for item in items)
+        for item in items:
+            item.setCheckState(Qt.CheckState.Checked if check else Qt.CheckState.Unchecked)
+
+    def toggle_category_visibility(self, category):
+        if category in self.collapsed_categories:
+            self.collapsed_categories.remove(category)
+        else:
+            self.collapsed_categories.add(category)
+        self.update_ui_with_apps(self.apps, self.uninstalled_apps)
+
     def install_selected(self):
         selected_apps = []
         for i in range(self.list_widget.count()):
@@ -314,23 +337,42 @@ class ArchAppInstaller(QMainWindow):
 
     def update_ui_with_apps(self, all_apps, uninstalled_apps):
         """The single point of entry for your UI data"""
+        self.selected_apps = [
+            self.list_widget.item(i).text() for i in range(self.list_widget.count())
+            if self.list_widget.item(i).flags() & Qt.ItemFlag.ItemIsUserCheckable
+            and self.list_widget.item(i).checkState() == Qt.CheckState.Checked
+        ] or self.selected_apps
         self.apps = all_apps  # Keep the master list for the editor
+        self.uninstalled_apps = list(uninstalled_apps)
         self.stop_loading_animation()
         self.loading_label.hide()
         self.list_widget.clear()
+
+        app_categories = {
+            app.get("name"): str(app.get("category") or "Universal").strip() or "Universal"
+            for app in load_yaml() if app.get("name")
+        }
+        grouped_apps = {}
+        for app in uninstalled_apps:
+            grouped_apps.setdefault(app_categories.get(app, "Universal"), []).append(app)
+        categories = sorted(grouped_apps, key=str.casefold)
 
         if not uninstalled_apps:
             item = QListWidgetItem("All apps are currently installed!")
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
             self.list_widget.addItem(item)
         else:
-            for app in uninstalled_apps:
-                item = QListWidgetItem(app)
-                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-                # Check if it was previously selected
-                state = Qt.Checked if app in self.selected_apps else Qt.Unchecked
-                item.setCheckState(state)
-                self.list_widget.addItem(item)
+            for category in categories:
+                add_category_header(
+                    self.list_widget, category, category in self.collapsed_categories,
+                    self.toggle_category_visibility, self.toggle_category
+                )
+                for app in sorted(grouped_apps[category], key=str.casefold):
+                    item = QListWidgetItem(app)
+                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                    item.setCheckState(Qt.Checked if app in self.selected_apps else Qt.Unchecked)
+                    self.list_widget.addItem(item)
+                    item.setHidden(category in self.collapsed_categories)
 
     def go_back_to_setup(self):
         self.setup_window.show()

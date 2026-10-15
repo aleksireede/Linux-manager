@@ -10,11 +10,14 @@ parent_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(parent_dir)
 
 from programs.installer_logic import (list_all_installed_apps, remove_apps)
+from programs.apps_file import load_yaml, remove_app_from_yaml
 
 try:
+    from .category_list import add_category_header
     from .ui_helpers import create_back_button, create_select_refresh_row
     from .theme import configure_main_window, create_page_header
 except ImportError:
+    from category_list import add_category_header
     from ui_helpers import create_back_button, create_select_refresh_row
     from theme import configure_main_window, create_page_header
 
@@ -31,7 +34,7 @@ class AppListWorker(QObject):
 
 
 class RemoveOperationWorker(QObject):
-    finished = pyqtSignal()
+    finished = pyqtSignal(list)
     error = pyqtSignal(str)
 
     def __init__(self, apps):
@@ -41,9 +44,11 @@ class RemoveOperationWorker(QObject):
     def run(self):
         try:
             process = remove_apps(self.apps, "paru")
-            if process and hasattr(process, "wait"):
-                process.wait()
-            self.finished.emit()
+            if not process:
+                raise RuntimeError("Could not start the uninstall command.")
+            if hasattr(process, "wait") and process.wait() != 0:
+                raise RuntimeError("The uninstall command did not complete successfully.")
+            self.finished.emit(self.apps)
         except Exception as e:
             self.error.emit(str(e))
 
@@ -80,6 +85,8 @@ class AppUninstaller(QMainWindow):
         configure_main_window(self)
         # app list
         self.apps = []
+        self.selected_apps = []
+        self.collapsed_categories = set()
         self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
         self.init_ui()
 
@@ -133,18 +140,59 @@ class AppUninstaller(QMainWindow):
 
     def refresh_app_list(self):
         """Render current installed apps in the list widget."""
+        self.selected_apps = [
+            self.list_widget.item(i).text() for i in range(self.list_widget.count())
+            if self.list_widget.item(i).flags() & Qt.ItemFlag.ItemIsUserCheckable
+            and self.list_widget.item(i).checkState() == Qt.CheckState.Checked
+        ] or self.selected_apps
         self.list_widget.clear()
-        if self.apps:
-            for app in self.apps:
-                item = QListWidgetItem(app)
-                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-                item.setCheckState(Qt.CheckState.Unchecked)
-                self.list_widget.addItem(item)
-        else:
+        app_categories = {
+            entry.get("name"): str(entry.get("category") or "Universal").strip() or "Universal"
+            for entry in load_yaml() if entry.get("name")
+        }
+        grouped_apps = {}
+        for app in self.apps:
+            grouped_apps.setdefault(app_categories.get(app, "Universal"), []).append(app)
+
+        if not grouped_apps:
             item = QListWidgetItem("No apps to remove.!")
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable &
                           ~Qt.ItemFlag.ItemIsUserCheckable)
             self.list_widget.addItem(item)
+            return
+
+        for category in sorted(grouped_apps, key=str.casefold):
+            add_category_header(
+                self.list_widget, category, category in self.collapsed_categories,
+                self.toggle_category_visibility, self.toggle_category
+            )
+            for app in sorted(grouped_apps[category], key=str.casefold):
+                item = QListWidgetItem(app)
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                item.setCheckState(
+                    Qt.CheckState.Checked if app in self.selected_apps else Qt.CheckState.Unchecked
+                )
+                item.setHidden(category in self.collapsed_categories)
+                self.list_widget.addItem(item)
+
+    def toggle_category_visibility(self, category):
+        if category in self.collapsed_categories:
+            self.collapsed_categories.remove(category)
+        else:
+            self.collapsed_categories.add(category)
+        self.refresh_app_list()
+
+    def toggle_category(self, category):
+        app_categories = {
+            entry.get("name"): str(entry.get("category") or "Universal").strip() or "Universal"
+            for entry in load_yaml() if entry.get("name")
+        }
+        items = [self.list_widget.item(i) for i in range(self.list_widget.count())
+                 if self.list_widget.item(i).flags() & Qt.ItemFlag.ItemIsUserCheckable
+                 and app_categories.get(self.list_widget.item(i).text(), "Universal") == category]
+        check = not items or not all(item.checkState() == Qt.CheckState.Checked for item in items)
+        for item in items:
+            item.setCheckState(Qt.CheckState.Checked if check else Qt.CheckState.Unchecked)
 
     def refresh_app_list_async(self):
         if self.thread and self.thread.isRunning():
@@ -251,11 +299,13 @@ class AppUninstaller(QMainWindow):
         self.action_thread.finished.connect(self.cleanup_action_thread)
         self.action_thread.start()
 
-    def on_remove_operation_finished(self):
+    def on_remove_operation_finished(self, removed_apps):
         self.install_button.setEnabled(True)
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
         self.search_button.setEnabled(True)
+        for app in removed_apps:
+            remove_app_from_yaml(app)
         self.refresh_app_list_async()
 
     def on_remove_operation_error(self, error_message):

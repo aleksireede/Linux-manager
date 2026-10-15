@@ -42,14 +42,29 @@ class AppsFileStore:
                 return app.get("source")
         return None
 
-    def add_app_to_yaml(self, app_to_add):
+    def get_app_category(self, app_name):
+        for app in self.load_yaml():
+            if app.get("name") == app_name:
+                return str(app.get("category") or "Universal").strip() or "Universal"
+        return "Universal"
+
+    def set_apps_category(self, app_names, category):
+        category = category.strip() or "Universal"
+        names = set(app_names)
+        data = self.load_yaml()
+        for app in data:
+            if app.get("name") in names:
+                app["category"] = category
+        self.write_to_yaml(data)
+
+    def add_app_to_yaml(self, app_to_add, category="Universal"):
         yaml_data = self.load_yaml()
         source = detect_install_method(app_to_add)
         application = {
             "name": app_to_add,
             "description": f"Default description for {app_to_add}",
             "source": source if source else "Unknown",
-            "category": "Utilities",
+            "category": category.strip() or "Universal",
             "conflicts": [],
         }
         yaml_data.append(application)
@@ -90,8 +105,16 @@ def get_app_source(app_name):
     return apps_file_store.get_app_source(app_name)
 
 
-def add_app_to_yaml(app_to_add):
-    apps_file_store.add_app_to_yaml(app_to_add)
+def add_app_to_yaml(app_to_add, category="Universal"):
+    apps_file_store.add_app_to_yaml(app_to_add, category)
+
+
+def get_app_category(app_name):
+    return apps_file_store.get_app_category(app_name)
+
+
+def set_apps_category(app_names, category):
+    apps_file_store.set_apps_category(app_names, category)
 
 
 def remove_app_from_yaml(app_to_remove):

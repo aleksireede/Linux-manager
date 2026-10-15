@@ -8,7 +8,7 @@ from pathlib import Path
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5.QtGui import QPixmap, QColor, QBrush
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QFrame, \
-    QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication, QTreeWidget, QTreeWidgetItem, QHeaderView
+    QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication, QTreeWidget, QTreeWidgetItem, QHeaderView, QGridLayout
 
 programs_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(programs_dir)
@@ -121,9 +121,8 @@ class SetupWindow(QMainWindow):
     open_advanced_tweaks = pyqtSignal()
     open_apps_page = pyqtSignal()
     open_services_page = pyqtSignal()
-    open_games_page = pyqtSignal()
-    open_dev_tools_page = pyqtSignal()
-    open_browsers_page = pyqtSignal()
+    open_updates_page = pyqtSignal()
+    open_network_drives_page = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -151,9 +150,8 @@ class SetupWindow(QMainWindow):
         self.remove_button = None
         self.apps_page_button = None
         self.services_page_button = None
-        self.games_page_button = None
-        self.dev_tools_page_button = None
-        self.browsers_page_button = None
+        self.updates_page_button = None
+        self.network_drives_page_button = None
         self.add_network_drive_button = None
         self.network_drives_card = None
         self.network_drives_tree = None
@@ -287,65 +285,95 @@ class SetupWindow(QMainWindow):
         self.services_page_button = QPushButton("Services")
         self.services_page_button.clicked.connect(self.open_services_page.emit)
 
-        self.games_page_button = QPushButton("Games")
-        self.games_page_button.clicked.connect(self.open_games_page.emit)
+        self.updates_page_button = QPushButton("Updates")
+        self.updates_page_button.clicked.connect(self.open_updates_page.emit)
 
-        self.dev_tools_page_button = QPushButton("Developer Tools")
-        self.dev_tools_page_button.clicked.connect(self.open_dev_tools_page.emit)
-
-        self.browsers_page_button = QPushButton("Web Browsers")
-        self.browsers_page_button.clicked.connect(self.open_browsers_page.emit)
+        self.network_drives_page_button = QPushButton("Network Drives")
+        self.network_drives_page_button.clicked.connect(self.open_network_drives_page.emit)
 
         self.advanced_tweak_btn = QPushButton("Advanced Tweaks")
         self.advanced_tweak_btn.clicked.connect(self.open_advanced_tweaks.emit)
 
-        # Set size policies for buttons
+        # Build a compact launcher dashboard for the main page.
         self.install_paru_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.gpudrv_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.update_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         service_btn_width = 180
-        main_button_width = 240
         self.install_paru_button.setFixedWidth(service_btn_width)
         self.gpudrv_button.setFixedWidth(service_btn_width)
         self.update_button.setFixedWidth(service_btn_width)
-        self.apps_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.services_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.games_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.dev_tools_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.browsers_page_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.apps_page_button.setFixedWidth(main_button_width)
-        self.services_page_button.setFixedWidth(main_button_width)
-        self.games_page_button.setFixedWidth(main_button_width)
-        self.dev_tools_page_button.setFixedWidth(main_button_width)
-        self.browsers_page_button.setFixedWidth(main_button_width)
-        self.advanced_tweak_btn.setFixedWidth(main_button_width)
 
-        # Bottom Button layout
-        self.bottom_layout = QVBoxLayout()
-        self.bottom_layout.setSpacing(10)
-        self.bottom_layout.addWidget(self.apps_page_button)
-        self.bottom_layout.addWidget(self.games_page_button)
-        self.bottom_layout.addWidget(self.dev_tools_page_button)
-        self.bottom_layout.addWidget(self.browsers_page_button)
-        self.bottom_layout.addWidget(self.services_page_button)
-        self.bottom_layout.addWidget(self.advanced_tweak_btn)
+        self.layout.setContentsMargins(48, 36, 48, 36)
+        self.layout.setSpacing(24)
 
-        # Bottom outer layout
-        self.outer_bottom_layout = QHBoxLayout()
-        self.outer_bottom_layout.addStretch()
-        self.outer_bottom_layout.addLayout(self.bottom_layout)
-        self.outer_bottom_layout.addStretch()
+        hero = QFrame()
+        hero.setObjectName("pageHeader")
+        hero_layout = QVBoxLayout(hero)
+        hero_layout.setContentsMargins(28, 22, 28, 22)
+        hero_layout.setSpacing(6)
+        title = QLabel("Arch MySetup")
+        title.setStyleSheet("font-size: 30px; font-weight: 800; color: #ffffff; background: transparent;")
+        subtitle = QLabel("Manage applications, system services, updates, and device settings.")
+        subtitle.setStyleSheet("font-size: 15px; color: #f5f3ff; background: transparent;")
+        hero_layout.addWidget(title)
+        hero_layout.addWidget(subtitle)
+        self.layout.addWidget(hero)
 
-        # Add to main layout with stretch
-        self.layout.addSpacing(16)
-        self.layout.addWidget(self.paru_card)
-        self.layout.addWidget(self.gpu_card)
-        self.layout.addWidget(self.update_card)
-        self.layout.addWidget(self.network_drives_card)
-        self.layout.addSpacing(16)
-        self.layout.addLayout(self.outer_bottom_layout)
-        self.layout.addSpacing(16)
-        self.layout.addStretch()
+        navigation_grid = QGridLayout()
+        navigation_grid.setHorizontalSpacing(18)
+        navigation_grid.setVerticalSpacing(18)
+        for column in range(3):
+            navigation_grid.setColumnStretch(column, 1)
+
+        destinations = [
+            (self.apps_page_button, "Apps", "Install, remove, and organize applications."),
+            (self.services_page_button, "Services", "Manage system services and their state."),
+            (self.updates_page_button, "Updates", "Update the app, install drivers, and set up Paru."),
+            (self.network_drives_page_button, "Network Drives", "Add Samba shares and review mounted drives."),
+            (self.advanced_tweak_btn, "Advanced Tweaks", "Configure desktop and system preferences."),
+        ]
+
+        def make_navigation_card(button, heading, description):
+            card = QFrame()
+            card.setObjectName("serviceCard")
+            card.setMinimumHeight(160)
+            card_layout = QVBoxLayout(card)
+            card_layout.setContentsMargins(20, 18, 20, 18)
+            card_layout.setSpacing(10)
+
+            heading_label = QLabel(heading)
+            heading_label.setObjectName("serviceTitle")
+            heading_label.setStyleSheet("font-size: 18px; font-weight: 700; color: #eaf2ff;")
+            description_label = QLabel(description)
+            description_label.setWordWrap(True)
+            description_label.setStyleSheet("font-size: 14px; color: #aebdce;")
+
+            button.setText("Open")
+            button.setObjectName("serviceAction")
+            button.setFixedWidth(104)
+            action_row = QHBoxLayout()
+            action_row.addStretch()
+            action_row.addWidget(button)
+
+            card_layout.addWidget(heading_label)
+            card_layout.addWidget(description_label, 1)
+            card_layout.addLayout(action_row)
+            return card
+
+        for column, destination in enumerate(destinations[:3]):
+            navigation_grid.addWidget(make_navigation_card(*destination), 0, column)
+        self.layout.addLayout(navigation_grid)
+
+        secondary_navigation = QHBoxLayout()
+        secondary_navigation.setSpacing(18)
+        secondary_navigation.addStretch(1)
+        for destination in destinations[3:]:
+            card = make_navigation_card(*destination)
+            card.setMaximumWidth(500)
+            secondary_navigation.addWidget(card, 1)
+        secondary_navigation.addStretch(1)
+        self.layout.addLayout(secondary_navigation)
+        self.layout.addStretch(1)
 
         self.refresh_network_drives()
         self.start_update_check()
