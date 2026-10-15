@@ -130,7 +130,13 @@ def arch_catalog_app_name(package_name):
 def fedora_catalog_app_name(package_name):
     """Translate an installed Fedora package back to its catalog identifier."""
     for app_name, record in _fedora_app_records().items():
-        if record.get("fedora_app_name") == package_name:
+        fedora_name = record.get("fedora_app_name")
+        if fedora_name == package_name:
+            return app_name
+        if isinstance(fedora_name, str) and fedora_name.rsplit(".", 1)[-1] in {
+            "i386", "i486", "i586", "i686", "x86_64", "aarch64", "armv7hl",
+            "ppc64le", "s390x", "riscv64", "noarch",
+        } and fedora_name.rsplit(".", 1)[0] == package_name:
             return app_name
     return package_name
 
@@ -208,22 +214,29 @@ def fedora_packages_available(app_names):
         result = subprocess.run(
             [
                 manager, "repoquery", "--available", "--queryformat",
-                "%{name}\\n", *sorted(set(package_names.values())),
+                "%{name}.%{arch}\\n", *sorted(set(package_names.values())),
             ],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
             timeout=120,
         )
-        requested_names = set(package_names.values())
+        available_names = {
+            line.strip() for line in result.stdout.splitlines() if line.strip()
+        }
         # DNF can return a non-zero status when any requested name is missing,
         # while still printing matches for the other names. Keep those matches
         # so one bad catalog entry cannot hide every valid package.
-        available_names = {
-            line.strip() for line in result.stdout.splitlines()
-            if line.strip() in requested_names
-        }
+        def requested_package_is_available(package_name):
+            suffix = package_name.rsplit(".", 1)[-1]
+            if suffix in {
+                "i386", "i486", "i586", "i686", "x86_64", "aarch64", "armv7hl",
+                "ppc64le", "s390x", "riscv64", "noarch",
+            }:
+                return package_name in available_names
+            return any(name.startswith(f"{package_name}.") for name in available_names)
+
         available.update({
             app_name for app_name, package_name in package_names.items()
-            if package_name in available_names
+            if requested_package_is_available(package_name)
         })
         return available
     except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):

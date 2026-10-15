@@ -38,6 +38,13 @@ class AppManagerWorker(QObject):
         try:
             # 1. Get the full list from the file
             all_apps = list(dict.fromkeys(load_apps_from_file()))
+            if is_fedora() and package_manager() in {"dnf", "dnf5"}:
+                # Fedora's installer should only show apps with a Fedora
+                # package mapping or a dedicated Fedora install method.
+                all_apps = [
+                    app for app in all_apps
+                    if fedora_app_name(app) or fedora_install_type(app)
+                ]
             self.progress.emit(f"Loaded {len(all_apps)} apps; checking installed apps")
             # 2. Filter for what's actually missing
             if is_fedora() and package_manager() in {"dnf", "dnf5"}:
@@ -606,9 +613,19 @@ class ArchAppInstaller(QMainWindow):
         return "\n\n".join(sections)
 
     def show_install_summary(self):
-        summary_text = self.format_install_summary()
-        if summary_text:
-            QMessageBox.information(self, "Fedora Installation Results", summary_text)
+        summary = self.last_install_summary
+        if not summary:
+            return
+
+        has_reported_issues = any(
+            summary.get(key) for key in ("unavailable", "skipped", "replaced")
+        )
+        if has_reported_issues:
+            QMessageBox.information(
+                self, "Fedora Installation Results", self.format_install_summary()
+            )
+        else:
+            QMessageBox.information(self, "Installation Complete", "Installation successful.")
 
     def on_install_operations_finished(self):
         self.stop_loading_animation()

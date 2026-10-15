@@ -22,7 +22,7 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: ananicy-cpp
+  fedora_app_name: null
 - name: android-udev
   description: Default description for android-udev
   source: pacman
@@ -64,13 +64,13 @@
   source: pacman
   category: Utilities
   conflicts: []
-  fedora_app_name: balena-etcher
+  fedora_app_name: null
 - name: base-devel
   description: Default description for base-devel
   source: pacman
   category: System utils
   conflicts: []
-  fedora_app_name: '@development-tools'
+  fedora_app_name: null
 - name: bind
   description: Default description for bind
   source: Unknown
@@ -424,67 +424,67 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-alsa-plugins
+  fedora_app_name: alsa-plugins-pulseaudio.i686
 - name: lib32-fontconfig
   description: Default description for lib32-fontconfig
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-fontconfig
+  fedora_app_name: fontconfig.i686
 - name: lib32-gamemode
   description: Default description for lib32-gamemode
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-gamemode
+  fedora_app_name: gamemode.i686
 - name: lib32-giflib
   description: Default description for lib32-giflib
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-giflib
+  fedora_app_name: giflib.i686
 - name: lib32-gst-plugins-base
   description: Default description for lib32-gst-plugins-base
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-gst-plugins-base
+  fedora_app_name: gstreamer1-plugins-base.i686
 - name: lib32-gst-plugins-base-libs
   description: Default description for lib32-gst-plugins-base-libs
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-gst-plugins-base-libs
+  fedora_app_name: gstreamer1-plugins-base.i686
 - name: lib32-gst-plugins-good
   description: Default description for lib32-gst-plugins-good
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-gst-plugins-good
+  fedora_app_name: gstreamer1-plugins-good.i686
 - name: lib32-gstreamer
   description: Default description for lib32-gstreamer
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-gstreamer
+  fedora_app_name: gstreamer1.i686
 - name: lib32-libdecor
   description: Default description for lib32-libdecor
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-libdecor
+  fedora_app_name: libdecor.i686
 - name: lib32-libjpeg-turbo
   description: Default description for lib32-libjpeg-turbo
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-libjpeg-turbo
+  fedora_app_name: libjpeg-turbo.i686
 - name: lib32-mangohud
   description: Default description for lib32-mangohud
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-mangohud
+  fedora_app_name: mangohud.i686
 - name: lib32-mesa
   description: Default description for lib32-mesa
   source: pacman
@@ -496,25 +496,25 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-mpg123
+  fedora_app_name: mpg123-libs.i686
 - name: lib32-openal
   description: Default description for lib32-openal
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-openal
+  fedora_app_name: openal-soft.i686
 - name: lib32-pipewire
   description: Default description for lib32-pipewire
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-pipewire
+  fedora_app_name: pipewire-libs.i686
 - name: lib32-pipewire-jack
   description: Default description for lib32-pipewire-jack
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: lib32-pipewire-jack
+  fedora_app_name: pipewire-jack-audio-connection-kit-libs.i686
 - name: lib32-vulkan-radeon
   description: Default description for lib32-vulkan-radeon
   source: pacman
@@ -532,7 +532,7 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: libreoffice-fresh
+  fedora_app_name: libreoffice
 - name: linux-firmware-amdgpu
   description: Default description for linux-firmware-amdgpu
   source: Unknown
@@ -544,13 +544,13 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: linux-zen
+  fedora_app_name: null
 - name: linux-zen-headers
   description: Default description for linux-zen-headers
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: linux-zen-headers
+  fedora_app_name: null
 - name: lm_sensors
   description: Default description for lm_sensors
   source: Unknown
@@ -562,7 +562,7 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: localsend-bin
+  fedora_app_name: null
 - name: lolcat
   description: Default description for lolcat
   source: pacman
@@ -586,7 +586,7 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: makemkv
+  fedora_app_name: null
 - name: makepkg-optimize-mold
   description: Default description for makepkg-optimize-mold
   source: Unknown
@@ -628,7 +628,7 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: mission-center
+  fedora_app_name: null
 - name: nmap
   description: Default description for nmap
   source: pacman
@@ -640,7 +640,7 @@
   source: pacman
   category: System utils
   conflicts: []
-  fedora_app_name: nodejs
+  fedora_app_name: nodejs22-bin
 - name: noto-fonts
   description: Default description for noto-fonts
   source: Unknown
@@ -664,7 +664,7 @@
   source: pacman
   category: System utils
   conflicts: []
-  fedora_app_name: nodejs-npm
+  fedora_app_name: nodejs22-npm-bin
 - name: ntfs-3g
   description: Default description for ntfs-3g
   source: Unknown
@@ -830,31 +830,31 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: pwvucontrol
+  fedora_app_name: null
 - name: python-pip
   description: Default description for python-pip
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: python-pip
+  fedora_app_name: python3-pip
 - name: python-pyqt5
   description: Default description for python-pyqt5
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: python-pyqt5
+  fedora_app_name: python3-qt5
 - name: python-pyqt6
   description: Default description for python-pyqt6
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: python-pyqt6
+  fedora_app_name: python3-pyqt6
 - name: python-setuptools
   description: Default description for python-setuptools
   source: pacman
   category: Utilities
   conflicts: []
-  fedora_app_name: python-setuptools
+  fedora_app_name: python3-setuptools
 - name: qbittorrent
   description: Default description for qbittorrent
   source: Unknown
@@ -866,7 +866,7 @@
   source: pacman
   category: Utilities
   conflicts: []
-  fedora_app_name: qt6-multimedia
+  fedora_app_name: qt6-qtmultimedia
 - name: rclone-browser
   description: Default description for rclone-browser
   source: Unknown
@@ -937,7 +937,7 @@
   source: pacman
   category: Utilities
   conflicts: []
-  fedora_app_name: spotify-launcher
+  fedora_app_name: null
 - name: steam
   description: Valve launcher and storefront for PC games.
   source: pacman
@@ -959,7 +959,7 @@
   source: Unknown
   category: Utilities
   conflicts: []
-  fedora_app_name: telegram-desktop
+  fedora_app_name: null
 - name: tor-browser-bin
   description: Tor Browser bundle packaged for Arch through the AUR.
   source: paru
@@ -1064,4 +1064,4 @@
   source: pacman
   category: Utilities
   conflicts: []
-  fedora_app_name: zenmap
+  fedora_app_name: null
