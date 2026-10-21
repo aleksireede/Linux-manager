@@ -1,8 +1,7 @@
-import json
+import re
 import shutil
 import subprocess
 import sys
-import urllib.request
 from pathlib import Path
 
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
@@ -54,7 +53,7 @@ class UpdateCheckWorker(QObject):
                 status_text = f"Up to date ({latest_tag})"
                 update_available = False
             elif current_version == "unknown":
-                status_text = f"Latest release: {latest_tag} (local version unknown)"
+                status_text = f"Latest version: {latest_tag} (local version unknown)"
                 update_available = True
             else:
                 status_text = f"Update available: {current_version} -> {latest_tag}"
@@ -66,14 +65,26 @@ class UpdateCheckWorker(QObject):
 
     @staticmethod
     def fetch_latest_release_tag():
-        url = "https://api.github.com/repos/aleksireede/arch-mysetup/releases/latest"
-        request = urllib.request.Request(url, headers={"User-Agent": "arch-mysetup"})
-        with urllib.request.urlopen(request, timeout=6) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        tag_name = payload.get("tag_name")
-        if not tag_name:
-            raise RuntimeError("Could not resolve latest release tag from GitHub")
-        return tag_name
+        output = subprocess.check_output(
+            [
+                "git", "ls-remote", "--tags", "--refs",
+                "https://github.com/aleksireede/arch-mysetup.git",
+            ],
+            text=True,
+            timeout=8,
+        )
+        tags = [
+            line.rsplit("refs/tags/", 1)[-1]
+            for line in output.splitlines()
+            if "refs/tags/" in line
+        ]
+        version_tags = [tag for tag in tags if re.fullmatch(r"v?\d+(?:\.\d+)*", tag)]
+        if not version_tags:
+            raise RuntimeError("Could not resolve a version tag from GitHub")
+        return max(
+            version_tags,
+            key=lambda tag: tuple(int(part) for part in tag.removeprefix("v").split(".")),
+        )
 
     @staticmethod
     def get_current_version():
