@@ -9,13 +9,6 @@ if [[ ! -d "$INSTALL_DIR/.git" && -d "/opt/arch-mysetup/.git" ]]; then
   INSTALL_DIR="/opt/arch-mysetup"
 fi
 LAUNCHER_BIN="/usr/local/bin/linux-manager"
-LATEST_RELEASE_API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
-
-if ! command -v curl >/dev/null 2>&1; then
-  echo "curl is required for release checks."
-  exit 1
-fi
-
 if ! command -v git >/dev/null 2>&1; then
   echo "git is required for updates."
   exit 1
@@ -28,14 +21,14 @@ fi
 
 CURRENT_TAG="$(git -C "$INSTALL_DIR" describe --tags --exact-match 2>/dev/null || echo "unknown")"
 
-LATEST_TAG=""
-if curl -fsSL "$LATEST_RELEASE_API" >/tmp/linux_manager_release.json 2>/dev/null; then
-  LATEST_TAG="$(sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' /tmp/linux_manager_release.json | head -n1)"
-fi
-rm -f /tmp/linux_manager_release.json
+# The GitHub /releases/latest endpoint follows publication time, which can
+# point at an older tag if newer version tags were pushed without a release.
+git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL"
+git -C "$INSTALL_DIR" fetch origin --tags --prune
+LATEST_TAG="$(git -C "$INSTALL_DIR" tag --list | sort -V | tail -n1)"
 
 if [[ -z "$LATEST_TAG" ]]; then
-  echo "Unable to resolve latest release tag from GitHub."
+  echo "Unable to resolve the latest version tag from GitHub."
   exit 1
 fi
 
@@ -51,9 +44,18 @@ if [[ "$CURRENT_TAG" == "$LATEST_TAG" ]]; then
   exit 0
 fi
 
+# Protect installations on a newer version if the remote's highest tag is
+# older or if the local checkout is ahead of all published tags.
+if [[ "$CURRENT_TAG" != "unknown" ]]; then
+  NEWER_TAG="$(printf '%s\n' "$CURRENT_TAG" "$LATEST_TAG" | sort -V | tail -n1)"
+  if [[ "$NEWER_TAG" == "$CURRENT_TAG" ]]; then
+    echo "Installed tag $CURRENT_TAG is newer than remote tag $LATEST_TAG; skipping downgrade."
+    exit 0
+  fi
+fi
+
 echo "Updating to $LATEST_TAG..."
 git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL"
-git -C "$INSTALL_DIR" fetch origin --tags --prune
 if ! git -C "$INSTALL_DIR" rev-parse --verify --quiet "refs/tags/$LATEST_TAG^{commit}" >/dev/null; then
   echo "Release tag $LATEST_TAG was not found after fetching tags."
   exit 1
