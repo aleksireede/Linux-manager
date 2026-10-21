@@ -1,0 +1,72 @@
+Name:           linux-manager
+Version:        %{version}
+Release:        %{_release}%{?dist}
+Summary:        Desktop system and application manager
+License:        GPL-3.0-or-later
+URL:            https://github.com/aleksireede/arch-mysetup
+Source0:        linux-manager.tar.gz
+BuildArch:      noarch
+Requires:       bash
+Requires:       python3
+Requires:       python3-PyYAML
+Requires:       python3-qt5
+Requires:       qt5-qtbase-gui
+Requires:       qt5-qtwayland
+Requires:       git
+Requires:       curl
+Requires:       gnome-terminal
+
+%description
+Linux-Manager is a desktop application for managing applications, network
+drives, system settings, and system updates on Arch Linux and Fedora.
+
+%prep
+%setup -q -c -T
+tar -xzf %{SOURCE0}
+
+%build
+
+%install
+install -d %{buildroot}/opt/linux-manager
+cp -a bin gui icons main programs scripts %{buildroot}/opt/linux-manager/
+install -Dm644 README.md %{buildroot}/opt/linux-manager/README.md
+install -Dm644 LICENSE %{buildroot}/opt/linux-manager/LICENSE
+
+install -d %{buildroot}%{_bindir}
+cat > %{buildroot}%{_bindir}/linux-manager <<'EOF'
+#!/usr/bin/bash
+exec python3 /opt/linux-manager/main/main.py "$@"
+EOF
+cat > %{buildroot}%{_bindir}/linux-manager-update <<'EOF'
+#!/usr/bin/bash
+exec bash /opt/linux-manager/main/update.sh "$@"
+EOF
+chmod 0755 %{buildroot}%{_bindir}/linux-manager %{buildroot}%{_bindir}/linux-manager-update
+
+install -Dm644 icons/linux-manager.svg \
+  %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/linux-manager.svg
+install -Dm644 /dev/stdin %{buildroot}%{_datadir}/applications/linux-manager.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Linux-Manager
+Comment=Linux setup and application manager
+Exec=linux-manager
+TryExec=linux-manager
+Icon=linux-manager
+Terminal=false
+Categories=System;Settings;
+StartupNotify=true
+EOF
+
+%files
+%license LICENSE
+%doc README.md
+%{_bindir}/linux-manager
+%{_bindir}/linux-manager-update
+%{_datadir}/applications/linux-manager.desktop
+%{_datadir}/icons/hicolor/scalable/apps/linux-manager.svg
+/opt/linux-manager
+
+%changelog
+* Thu Oct 22 2026 Linux-Manager contributors - %{version}-1
+- Package application for Fedora

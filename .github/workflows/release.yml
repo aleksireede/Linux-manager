@@ -9,11 +9,51 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build-rpm:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Install RPM build tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: Build Fedora RPM
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          mkdir -p "$HOME/rpmbuild/"{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+          tar --exclude=.git -czf "$HOME/rpmbuild/SOURCES/linux-manager.tar.gz" .
+          rpmbuild -bb packaging/linux-manager.spec.in \
+            --define "_topdir $HOME/rpmbuild" \
+            --define "version $VERSION" \
+            --define "_release 1"
+          mkdir -p dist
+          cp "$HOME"/rpmbuild/RPMS/*/*.rpm dist/
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fedora-rpm
+          path: dist/*.rpm
+          if-no-files-found: error
+
+  release:
+    needs: build-rpm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Download RPM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fedora-rpm
+          path: dist
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.ref_name }}
-        run: gh release create "$TAG_NAME" --generate-notes
+        run: gh release create "$TAG_NAME" dist/*.rpm --generate-notes
