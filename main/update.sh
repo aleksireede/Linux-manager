@@ -4,7 +4,6 @@ set -euo pipefail
 REPO_OWNER="aleksireede"
 REPO_NAME="arch-mysetup"
 REPO_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}.git"
-REPO_BRANCH="main"
 INSTALL_DIR="/opt/linux-manager"
 if [[ ! -d "$INSTALL_DIR/.git" && -d "/opt/arch-mysetup/.git" ]]; then
   INSTALL_DIR="/opt/arch-mysetup"
@@ -27,10 +26,7 @@ if [[ ! -d "$INSTALL_DIR/.git" ]]; then
   exit 1
 fi
 
-CURRENT_TAG="$(git -C "$INSTALL_DIR" describe --tags --exact-match 2>/dev/null || true)"
-if [[ -z "$CURRENT_TAG" ]]; then
-  CURRENT_TAG="$(git -C "$INSTALL_DIR" describe --tags --abbrev=0 2>/dev/null || echo "unknown")"
-fi
+CURRENT_TAG="$(git -C "$INSTALL_DIR" describe --tags --exact-match 2>/dev/null || echo "unknown")"
 
 LATEST_TAG=""
 if curl -fsSL "$LATEST_RELEASE_API" >/tmp/linux_manager_release.json 2>/dev/null; then
@@ -57,15 +53,19 @@ fi
 
 echo "Updating to $LATEST_TAG..."
 git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL"
-git -C "$INSTALL_DIR" fetch origin "$REPO_BRANCH" --tags --prune
-
-if git -C "$INSTALL_DIR" show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
-  git -C "$INSTALL_DIR" switch "$REPO_BRANCH"
-else
-  git -C "$INSTALL_DIR" switch --track -c "$REPO_BRANCH" "origin/$REPO_BRANCH"
+git -C "$INSTALL_DIR" fetch origin --tags --prune
+if ! git -C "$INSTALL_DIR" rev-parse --verify --quiet "refs/tags/$LATEST_TAG^{commit}" >/dev/null; then
+  echo "Release tag $LATEST_TAG was not found after fetching tags."
+  exit 1
 fi
+git -C "$INSTALL_DIR" checkout --detach "$LATEST_TAG"
 
-git -C "$INSTALL_DIR" pull --ff-only origin "$REPO_BRANCH"
+CHECKED_OUT_TAG="$(git -C "$INSTALL_DIR" describe --tags --exact-match 2>/dev/null || echo "unknown")"
+if [[ "$CHECKED_OUT_TAG" != "$LATEST_TAG" ]]; then
+  echo "Expected release $LATEST_TAG, but checked out $CHECKED_OUT_TAG."
+  exit 1
+fi
+echo "Checked out release: $CHECKED_OUT_TAG"
 
 # Recreate desktop integration after updating, including the launcher and icon.
 INSTALL_DIR="$INSTALL_DIR" bash "$INSTALL_DIR/main/install_app_integration.sh"
