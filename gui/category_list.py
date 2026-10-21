@@ -1,15 +1,32 @@
-from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtCore import Qt, QSize, QTimer, QEvent
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QListWidgetItem, QPushButton, QSizePolicy, QStyle, QToolButton, QWidget
 
 
 class _CategoryHeader(QWidget):
-    def __init__(self, list_widget, item, label):
+    def __init__(self, list_widget, item, label, category, toggle):
         super().__init__(list_widget)
         self.setObjectName("categoryHeader")
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._list_widget = list_widget
         self._item = item
         self._label = label
+        self._category = category
+        self._toggle = toggle
+        self._label.installEventFilter(self)
+
+    def eventFilter(self, watched, event):
+        if watched is self._label and event.type() == QEvent.MouseButtonRelease \
+                and event.button() == Qt.LeftButton:
+            self._toggle(self._category)
+            return True
+        return super().eventFilter(watched, event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._toggle(self._category)
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -35,7 +52,7 @@ def add_category_header(list_widget, category, collapsed, toggle, select_all=Non
     label.setWordWrap(True)
     label.setMinimumWidth(0)
     label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-    header = _CategoryHeader(list_widget, item, label)
+    header = _CategoryHeader(list_widget, item, label, category, toggle)
     layout = QHBoxLayout(header)
     layout.setContentsMargins(4, 0, 4, 0)
     arrow = QToolButton(header)

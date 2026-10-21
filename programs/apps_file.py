@@ -45,7 +45,7 @@ class AppsFileStore:
 
     def add_app_to_yaml(
         self, app_to_add, category="Universal", arch_app_name=None,
-        fedora_app_name=None, source=None,
+        fedora_app_name=None, source=None, conflicts=None,
     ):
         yaml_data = self.load_yaml()
         application = {
@@ -53,7 +53,7 @@ class AppsFileStore:
             "description": f"Default description for {app_to_add}",
             "source": source or "Unknown",
             "category": category.strip() or "Universal",
-            "conflicts": [],
+            "conflicts": conflicts or [],
         }
         if arch_app_name == app_to_add:
             pass
@@ -65,6 +65,7 @@ class AppsFileStore:
 
     def update_app_in_yaml(
         self, old_name, new_name, arch_app_name=None, fedora_app_name=None, source=None,
+        conflicts=None,
     ):
         yaml_data = self.load_yaml()
         entry = next((app for app in yaml_data if app.get("name") == old_name), None)
@@ -79,6 +80,8 @@ class AppsFileStore:
                 entry["arch_app_name"] = arch_app_name or None
         if fedora_app_name is not None:
             entry["fedora_app_name"] = fedora_app_name or None
+        if conflicts is not None:
+            entry["conflicts"] = conflicts
         self.write_to_yaml(yaml_data)
         return True
 
@@ -111,16 +114,16 @@ def load_yaml():
 
 
 def add_app_to_yaml(app_to_add, category="Universal", arch_app_name=None,
-                    fedora_app_name=None, source=None):
+                    fedora_app_name=None, source=None, conflicts=None):
     apps_file_store.add_app_to_yaml(
-        app_to_add, category, arch_app_name, fedora_app_name, source
+        app_to_add, category, arch_app_name, fedora_app_name, source, conflicts
     )
 
 
 def update_app_in_yaml(old_name, new_name, arch_app_name=None,
-                       fedora_app_name=None, source=None):
+                       fedora_app_name=None, source=None, conflicts=None):
     return apps_file_store.update_app_in_yaml(
-        old_name, new_name, arch_app_name, fedora_app_name, source
+        old_name, new_name, arch_app_name, fedora_app_name, source, conflicts
     )
 
 

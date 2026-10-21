@@ -46,6 +46,10 @@ fi
 echo "Installed version: $CURRENT_TAG"
 echo "Latest release:    $LATEST_TAG"
 
+if [[ -f "$INSTALL_DIR/main/install_app_integration.sh" ]]; then
+  INSTALL_DIR="$INSTALL_DIR" bash "$INSTALL_DIR/main/install_app_integration.sh"
+fi
+
 if [[ "$CURRENT_TAG" == "$LATEST_TAG" ]]; then
   echo "Already up to date."
   exit 0
@@ -62,6 +66,9 @@ else
 fi
 
 git -C "$INSTALL_DIR" pull --ff-only origin "$REPO_BRANCH"
+
+# Recreate desktop integration after updating, including the launcher and icon.
+INSTALL_DIR="$INSTALL_DIR" bash "$INSTALL_DIR/main/install_app_integration.sh"
 
 if [[ -x "$LAUNCHER_BIN" ]]; then
   echo "Update complete. Start with: $LAUNCHER_BIN"

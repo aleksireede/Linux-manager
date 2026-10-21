@@ -8,7 +8,7 @@ from pathlib import Path
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, Qt
 from PyQt5.QtGui import QPixmap, QColor, QBrush
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel, QHBoxLayout, QMessageBox, QFrame, \
-    QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication, QTreeWidget, QTreeWidgetItem, QHeaderView, QGridLayout
+    QLineEdit, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QApplication, QTreeWidget, QTreeWidgetItem, QHeaderView, QStackedWidget, QButtonGroup
 
 programs_dir = str(Path(__file__).resolve().parent.parent.joinpath("programs"))
 sys.path.append(programs_dir)
@@ -17,7 +17,7 @@ scripts_dir = str(Path(__file__).resolve().parent.parent.joinpath("scripts"))
 sys.path.append(scripts_dir)
 
 from scripts.detect_gpu import detect_gpu_vendor
-from programs.config import CHECKMARK_ICON_PATH, RED_X_ICON_PATH
+from programs.config import icon_checkmark, icon_red_cross, icon_height, icon_width
 from programs.installer_logic import install_paru, add_samba_drive, command_exists, open_terminal, parse_fstab_network_drives, get_mount_size, package_manager, set_network_drive_mounted
 try:
     from .theme import configure_main_window, configure_dialog
@@ -123,10 +123,6 @@ def run_sudo_command(command, validate_only=False):
     return result
 
 
-def ensure_sudo_authenticated():
-    return True
-
-
 class NetworkDriveActionWorker(QObject):
     finished = pyqtSignal(str, str)
     error = pyqtSignal(str)
@@ -154,6 +150,7 @@ class SetupWindow(QMainWindow):
     open_apps_page = pyqtSignal()
     open_updates_page = pyqtSignal()
     open_network_drives_page = pyqtSignal()
+    open_settings_page = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -180,6 +177,7 @@ class SetupWindow(QMainWindow):
         self.install_button = None
         self.remove_button = None
         self.apps_page_button = None
+        self.settings_page_button = None
         self.updates_page_button = None
         self.network_drives_page_button = None
         self.add_network_drive_button = None
@@ -208,6 +206,28 @@ class SetupWindow(QMainWindow):
         self.main_window = QWidget()
         self.setCentralWidget(self.main_window)
         self.layout = QVBoxLayout(self.main_window)  # Set layout directly on central widget
+        self.layout.setContentsMargins(32, 24, 32, 24)
+        self.layout.setSpacing(16)
+
+        self.page_menu = QHBoxLayout()
+        self.page_menu.setSpacing(8)
+        self.page_header = QFrame()
+        self.page_header.setObjectName("pageHeader")
+        page_header_layout = QVBoxLayout(self.page_header)
+        page_header_layout.setContentsMargins(10, 10, 10, 10)
+        self.page_title = QLabel("Apps")
+        self.page_title.setAlignment(Qt.AlignCenter)
+        self.page_title.setStyleSheet(
+            "font-size: 24px; font-weight: 700; color: #f1f1f1; background: transparent;"
+        )
+        page_header_layout.addWidget(self.page_title)
+        self.layout.addWidget(self.page_header)
+        self.layout.addLayout(self.page_menu)
+        self.page_menu_buttons = QButtonGroup(self)
+        self.page_menu_buttons.setExclusive(True)
+        self.page_stack = QStackedWidget()
+        self.layout.addWidget(self.page_stack, 1)
+        self.page_widgets = {}
 
         # GPU Driver Section
         self.gpu_card = QFrame()
@@ -246,7 +266,9 @@ class SetupWindow(QMainWindow):
         self.paru_layout.addWidget(self.paru_label, 1)
         self.paru_layout.addWidget(self.paru_status)
         self.paru_layout.addWidget(self.install_paru_button)
-        self.paru_card.setVisible(package_manager() == "pacman")
+        # This card is displayed on the Updates page. Keep it hidden while it
+        # has no parent; showing a parentless QWidget makes it a separate
+        # top-level window at startup.
 
         # Update section
         self.update_card = QFrame()
@@ -257,6 +279,9 @@ class SetupWindow(QMainWindow):
         update_title = QLabel("App Update")
         update_title.setObjectName("serviceTitle")
         self.update_status = QLabel("Checking latest release...")
+        self.update_status.setWordWrap(True)
+        self.update_status.setMinimumWidth(0)
+        self.update_status.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.update_status_icon = QLabel()
         self.update_state_label = QLabel("Checking...")
         update_info_layout = QVBoxLayout()
@@ -285,14 +310,26 @@ class SetupWindow(QMainWindow):
         network_title.setObjectName("serviceTitle")
 
         self.network_drives_tree = QTreeWidget()
+        self.network_drives_tree.setMinimumWidth(0)
+        self.network_drives_tree.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         self.network_drives_tree.setHeaderLabels(["Device", "Mount Point", "Type", "Options", "Size"])
         self.network_drives_tree.setMinimumHeight(150)
         self.network_drives_tree.setAlternatingRowColors(True)
         network_header = self.network_drives_tree.header()
         network_header.setStretchLastSection(False)
-        # Let "Options" absorb extra width; keep "Size" tight to its content.
+        # Give fixed, predictable widths to the short columns and let Options
+        # use the remaining space so long mount data cannot widen the page.
+        network_header.setSectionResizeMode(0, QHeaderView.Interactive)
+        network_header.setSectionResizeMode(1, QHeaderView.Interactive)
+        network_header.setSectionResizeMode(2, QHeaderView.Interactive)
         network_header.setSectionResizeMode(3, QHeaderView.Stretch)
-        network_header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        network_header.setSectionResizeMode(4, QHeaderView.Interactive)
+        self.network_drives_tree.setColumnWidth(0, 220)
+        self.network_drives_tree.setColumnWidth(1, 180)
+        self.network_drives_tree.setColumnWidth(2, 80)
+        self.network_drives_tree.setColumnWidth(4, 150)
+        self.network_drives_tree.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.network_drives_tree.setTextElideMode(Qt.ElideRight)
 
         self.add_network_drive_button = QPushButton("Add Network Drive (Samba)")
         self.add_network_drive_button.setObjectName("serviceAction")
@@ -327,6 +364,9 @@ class SetupWindow(QMainWindow):
         self.apps_page_button = QPushButton("Apps")
         self.apps_page_button.clicked.connect(self.open_apps_page.emit)
 
+        self.settings_page_button = QPushButton("Settings")
+        self.settings_page_button.clicked.connect(self.open_settings_page.emit)
+
         self.updates_page_button = QPushButton("Updates")
         self.updates_page_button.clicked.connect(self.open_updates_page.emit)
 
@@ -336,7 +376,7 @@ class SetupWindow(QMainWindow):
         self.advanced_tweak_btn = QPushButton("Advanced Tweaks")
         self.advanced_tweak_btn.clicked.connect(self.open_advanced_tweaks.emit)
 
-        # Build a compact launcher dashboard for the main page.
+        # Keep service actions sized consistently on their section pages.
         self.install_paru_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.gpudrv_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.update_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -345,78 +385,37 @@ class SetupWindow(QMainWindow):
         self.gpudrv_button.setFixedWidth(service_btn_width)
         self.update_button.setFixedWidth(service_btn_width)
 
-        self.layout.setContentsMargins(48, 36, 48, 36)
-        self.layout.setSpacing(24)
-
-        hero = QFrame()
-        hero.setObjectName("pageHeader")
-        hero_layout = QVBoxLayout(hero)
-        hero_layout.setContentsMargins(28, 22, 28, 22)
-        hero_layout.setSpacing(6)
-        title = QLabel("Linux-Manager")
-        title.setStyleSheet("font-size: 30px; font-weight: 800; color: #ffffff; background: transparent;")
-        subtitle = QLabel("Manage applications, updates, and device settings.")
-        subtitle.setStyleSheet("font-size: 15px; color: #f5f3ff; background: transparent;")
-        hero_layout.addWidget(title)
-        hero_layout.addWidget(subtitle)
-        self.layout.addWidget(hero)
-
-        navigation_grid = QGridLayout()
-        navigation_grid.setHorizontalSpacing(18)
-        navigation_grid.setVerticalSpacing(18)
-        for column in range(2):
-            navigation_grid.setColumnStretch(column, 1)
-
-        destinations = [
-            (self.apps_page_button, "Apps", "Install, remove, and organize applications."),
-            (self.updates_page_button, "Updates", "Update the app, install drivers, and set up Paru."),
-            (self.network_drives_page_button, "Network Drives", "Add Samba shares and review mounted drives."),
-            (self.advanced_tweak_btn, "Advanced Tweaks", "Configure desktop and system preferences."),
-        ]
-
-        def make_navigation_card(button, heading, description):
-            card = QFrame()
-            card.setObjectName("serviceCard")
-            card.setMinimumHeight(160)
-            card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(20, 18, 20, 18)
-            card_layout.setSpacing(10)
-
-            heading_label = QLabel(heading)
-            heading_label.setObjectName("serviceTitle")
-            heading_label.setStyleSheet("font-size: 18px; font-weight: 700; color: #eaf2ff;")
-            description_label = QLabel(description)
-            description_label.setWordWrap(True)
-            description_label.setStyleSheet("font-size: 14px; color: #aebdce;")
-
-            button.setText("Open")
-            button.setObjectName("serviceAction")
-            button.setFixedWidth(104)
-            action_row = QHBoxLayout()
-            action_row.addStretch()
-            action_row.addWidget(button)
-
-            card_layout.addWidget(heading_label)
-            card_layout.addWidget(description_label, 1)
-            card_layout.addLayout(action_row)
-            return card
-
-        for index, destination in enumerate(destinations):
-            row, column = divmod(index, 2)
-            navigation_grid.addWidget(make_navigation_card(*destination), row, column)
-        self.layout.addLayout(navigation_grid, 1)
-        self.layout.addStretch(1)
+        for button in (self.apps_page_button, self.network_drives_page_button,
+                       self.advanced_tweak_btn, self.updates_page_button, self.settings_page_button):
+            button.setObjectName("pageMenuButton")
+            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            button.setCheckable(True)
+            self.page_menu_buttons.addButton(button)
+            self.page_menu.addWidget(button)
 
         self.refresh_network_drives()
         self.start_update_check()
 
+    def add_page(self, button, page):
+        self.page_widgets[button] = page
+        self.page_stack.addWidget(page)
+        button.clicked.disconnect()
+        button.clicked.connect(lambda: self.show_page(button))
+
+    def show_page(self, button):
+        page = self.page_widgets.get(button)
+        if page is not None:
+            self.page_stack.setCurrentWidget(page)
+            self.page_title.setText(button.text())
+            button.setChecked(True)
+
     def update_gpu_status(self):
         if gpu_driver_installed():
-            self.gpudrv_status.setPixmap(QPixmap(str(CHECKMARK_ICON_PATH)).scaled(20, 20))
+            self.gpudrv_status.setPixmap(QPixmap(str(icon_checkmark)).scaled(icon_height, icon_width))
             self.gpudrv_button.setText("Installed")
             self.set_service_button_state(self.gpudrv_button, installed=True)
         else:
-            self.gpudrv_status.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(20, 20))
+            self.gpudrv_status.setPixmap(QPixmap(str(icon_red_cross)).scaled(icon_height, icon_width))
             self.gpudrv_button.setText("Install GPU Drivers")
             self.set_service_button_state(self.gpudrv_button, installed=False)
 
@@ -462,11 +461,11 @@ class SetupWindow(QMainWindow):
     def update_paru_status(self):
         """Update the Paru status icon or text."""
         if command_exists("paru"):
-            self.paru_status.setPixmap(QPixmap(str(CHECKMARK_ICON_PATH)).scaled(20, 20))
+            self.paru_status.setPixmap(QPixmap(str(icon_checkmark)).scaled(20, 20))
             self.install_paru_button.setText("Installed")
             self.set_service_button_state(self.install_paru_button, installed=True)
         else:
-            self.paru_status.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(20, 20))
+            self.paru_status.setPixmap(QPixmap(str(icon_red_cross)).scaled(20, 20))
             self.install_paru_button.setText("Install Paru")
             self.set_service_button_state(self.install_paru_button, installed=False)
 
@@ -481,10 +480,11 @@ class SetupWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", "Failed to install Paru.")
 
     def add_network_drive(self):
+        """todo: add more network drive types"""
         """Prompt for Samba share details in a single dialog and add to fstab."""
         dialog = QDialog(self)
         dialog.setWindowTitle("Add Network Drive")
-        configure_dialog(dialog, width=680, height=360, min_width=600, min_height=320)
+        dialog.setFixedSize(680,320)
         form_layout = QFormLayout(dialog)
 
         share_input = QLineEdit(dialog)
@@ -555,13 +555,11 @@ class SetupWindow(QMainWindow):
             item.setToolTip(4, size_text)
             item.setData(1, Qt.UserRole, mounted)
             if mounted:
-                item.setForeground(4, QBrush(QColor("#4CAF50")))
+                item.setForeground(4, QBrush(QColor("#89d185")))
             else:
-                item.setForeground(4, QBrush(QColor("#EF5350")))
+                item.setForeground(4, QBrush(QColor("#f48771")))
             self.network_drives_tree.addTopLevelItem(item)
         self.network_drives_tree.setUpdatesEnabled(True)
-        for col in range(self.network_drives_tree.columnCount()):
-            self.network_drives_tree.resizeColumnToContents(col)
         self.update_network_drive_actions(self.network_drives_tree.currentItem(), None)
 
     def update_network_drive_actions(self, current, _previous):
@@ -689,16 +687,16 @@ class SetupWindow(QMainWindow):
 
     def set_update_indicator(self, state):
         if state == "latest":
-            self.update_status_icon.setPixmap(QPixmap(str(CHECKMARK_ICON_PATH)).scaled(18, 18))
+            self.update_status_icon.setPixmap(QPixmap(str(icon_checkmark)).scaled(18, 18))
             self.update_state_label.setText("Up to Date")
         elif state == "available":
-            self.update_status_icon.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(18, 18))
+            self.update_status_icon.setPixmap(QPixmap(str(icon_red_cross)).scaled(18, 18))
             self.update_state_label.setText("Update Available")
         elif state == "checking":
             self.update_status_icon.clear()
             self.update_state_label.setText("Checking...")
         else:
-            self.update_status_icon.setPixmap(QPixmap(str(RED_X_ICON_PATH)).scaled(18, 18))
+            self.update_status_icon.setPixmap(QPixmap(str(icon_red_cross)).scaled(18, 18))
             self.update_state_label.setText("Check Failed")
 
     @staticmethod
@@ -707,17 +705,3 @@ class SetupWindow(QMainWindow):
         button.style().unpolish(button)
         button.style().polish(button)
         button.update()
-
-    def closeEvent(self, event):
-        if self.network_drive_thread and self.network_drive_thread.isRunning():
-            QMessageBox.information(
-                self,
-                "Network Drive Action Running",
-                "Wait for the network drive operation to finish before closing.",
-            )
-            event.ignore()
-            return
-        if self.update_check_thread and self.update_check_thread.isRunning():
-            self.update_check_thread.quit()
-            self.update_check_thread.wait(1500)
-        super().closeEvent(event)

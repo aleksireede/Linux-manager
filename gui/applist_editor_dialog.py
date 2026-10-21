@@ -3,9 +3,11 @@ from pathlib import Path
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout, \
-    QListWidgetItem, QLabel, QComboBox, QLineEdit, QDialogButtonBox
+    QListWidgetItem, QLabel, QComboBox, QLineEdit, QDialogButtonBox, QCheckBox
 
-from programs.apps_file import add_app_to_yaml, load_yaml, set_apps_category, update_app_in_yaml
+from programs.apps_file import (
+    add_app_to_yaml, load_yaml, remove_app_from_yaml, set_apps_category, update_app_in_yaml,
+)
 from programs.installer_logic import is_fedora, arch_app_name, fedora_app_name
 try:
     from .theme import configure_dialog
@@ -28,7 +30,7 @@ class AppListEditorDialog(QDialog):
         self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
         self.is_fedora = is_fedora()
         self.distro_icon_path = Path(__file__).resolve().parent.parent.joinpath(
-            "icons", "fedora-distro.svg" if self.is_fedora else "arch-distro.svg"
+            "icons", "fedora_logo.svg" if self.is_fedora else "arch_logo.svg"
         )
 
         # use vertical box layout
@@ -175,21 +177,29 @@ class AppListEditorDialog(QDialog):
         selected_apps = self.get_checked_apps()
         if not selected_apps:
             QMessageBox.information(
-                self, "No selection", "Please check at least one application to move.")
+                self, "No selection", "Please check at least one application to remove.")
             return
-        confirm = QMessageBox.question(
-            self,
-            "Move to Uninstall",
-            "Move the selected applications to the Uninstall category? This will not uninstall them yet.\n"
-            f"{', '.join(selected_apps)}",
-            QMessageBox.Yes | QMessageBox.No
-        )
-        if confirm == QMessageBox.Yes:
+
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Remove Applications")
+        dialog.setText(f"Remove these applications from the current list?\n{', '.join(selected_apps)}")
+        mark_for_uninstall = QCheckBox("Also mark for uninstallation (move to the Uninstall category)")
+        dialog.setCheckBox(mark_for_uninstall)
+        dialog.setStandardButtons(QMessageBox.Cancel | QMessageBox.Yes)
+        dialog.button(QMessageBox.Yes).setText("Remove")
+        if dialog.exec() != QMessageBox.Yes:
+            return
+
+        if mark_for_uninstall.isChecked():
             set_apps_category(selected_apps, "Uninstall")
-            self.populate_list()
             QMessageBox.information(
                 self, "Moved to Uninstall", f"Moved to the Uninstall category: {', '.join(selected_apps)}"
             )
+        else:
+            for app in selected_apps:
+                remove_app_from_yaml(app)
+        self.apps = [app for app in self.apps if app not in selected_apps]
+        self.populate_list()
 
     def add_apps(self):
         """Add an app with optional package names for Arch and Fedora."""
@@ -209,6 +219,10 @@ class AppListEditorDialog(QDialog):
         dialog_layout.addWidget(QLabel("Arch package name:", dialog))
         arch_package_input = QLineEdit(dialog)
         dialog_layout.addWidget(arch_package_input)
+        dialog_layout.addWidget(QLabel("Arch conflicting packages (comma-separated):", dialog))
+        arch_conflicts_input = QLineEdit(dialog)
+        arch_conflicts_input.setPlaceholderText("e.g. package-one, package-two")
+        dialog_layout.addWidget(arch_conflicts_input)
         dialog_layout.addWidget(QLabel("Fedora package name:", dialog))
         fedora_package_input = QLineEdit(dialog)
         dialog_layout.addWidget(fedora_package_input)
@@ -252,6 +266,7 @@ class AppListEditorDialog(QDialog):
             arch_app_name=arch_package or None,
             fedora_app_name=fedora_package or None,
             source=source_selector.currentText(),
+            conflicts=self.parse_conflicts(arch_conflicts_input.text()),
         )
         self.apps.append(app_name)
         self.apps.sort(key=str.casefold)
@@ -285,6 +300,12 @@ class AppListEditorDialog(QDialog):
         dialog_layout.addWidget(QLabel("Arch package name:", dialog))
         arch_package_input = QLineEdit(current_arch_package, dialog)
         dialog_layout.addWidget(arch_package_input)
+        dialog_layout.addWidget(QLabel("Arch conflicting packages (comma-separated):", dialog))
+        arch_conflicts_input = QLineEdit(
+            ", ".join(entry.get("conflicts", [])), dialog
+        )
+        arch_conflicts_input.setPlaceholderText("e.g. package-one, package-two")
+        dialog_layout.addWidget(arch_conflicts_input)
         dialog_layout.addWidget(QLabel("Fedora package name:", dialog))
         fedora_package_input = QLineEdit(current_fedora_package, dialog)
         dialog_layout.addWidget(fedora_package_input)
@@ -322,6 +343,7 @@ class AppListEditorDialog(QDialog):
             arch_app_name=arch_package,
             fedora_app_name=fedora_package,
             source=source_selector.currentText(),
+            conflicts=self.parse_conflicts(arch_conflicts_input.text()),
         )
         if not saved:
             QMessageBox.warning(self, "Edit App", "The app could not be updated in the catalog.")
@@ -329,6 +351,12 @@ class AppListEditorDialog(QDialog):
         self.apps = [new_name if existing == app_name else existing for existing in self.apps]
         self.apps.sort(key=str.casefold)
         self.populate_list()
+
+    @staticmethod
+    def parse_conflicts(value):
+        return list(dict.fromkeys(
+            package.strip() for package in value.split(",") if package.strip()
+        ))
 
     def get_apps(self):
         return self.apps

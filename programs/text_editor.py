@@ -3,134 +3,143 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from programs.config import (
-    PACMAN_CONF_PATH,
-    BASH_EXTRA_PATH,
-    BASHRC_PATH,
-    BASH_EXTRA_VERSION,
-    BASH_CUSTOM_TEMPLATE_PATH,
-    BASH_EXTRA_TEMPLATE_PATH,
-    BASH_CUSTOM_VERSION,
+    file_pacman_conf,
+    file_bashrc,
+    file_zshrc,
+    file_shell_custom,
+    file_shell_custom_content,
+    shell_custom_ver,
 )
+from programs.shell_frameworks import default_shell
+import re
 
 # Arch / Pacman config
-pacman_conf = PACMAN_CONF_PATH
+pacman_conf = file_pacman_conf
 pacman_sync_dir = Path("/var/lib/pacman/sync")
 multilib_disabled = "#[multilib]\n#Include = /etc/pacman.d/mirrorlist"
 multilib_enabled = "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
 
-# Bash config
-bash_extra_path = BASH_EXTRA_PATH
-bashrc_path = BASHRC_PATH
-bashrc_extra_text = 'if [ -f ~/.bash_extra ]; then\n. ~/.bash_extra\nfi'
-bash_extra_version = BASH_EXTRA_VERSION
-_bash_extra_body = BASH_EXTRA_TEMPLATE_PATH.read_text().rstrip()
-bash_extra_text = (
-    f"# Managed by Linux-Manager\n"
-    f"# linux-manager-bash-extra-version: {bash_extra_version}\n\n"
-    f"{_bash_extra_body}\n"
-)
-bash_custom_version = BASH_CUSTOM_VERSION
-_bash_custom_body = BASH_CUSTOM_TEMPLATE_PATH.read_text().rstrip()
-bash_custom_text = (
-    f"# Managed by Linux-Manager\n"
-    f"# linux-manager-bash-extra-version: {bash_custom_version}\n\n"
-    f"{_bash_custom_body}\n"
-)
+# Shared config loaded from either Bash or Zsh startup.
+SHELL_CONFIGS = {
+    "bash": {"rc_path": file_bashrc},
+    "zsh": {"rc_path": file_zshrc},
+}
 
 
-# todo: find text and then read the whole line to edit eg. ParallelDownload=5 to edit the number
-def check_if_text_exists(file: Path, search_text: str) -> bool:
-    """
-    Checks if text exists in file.
-    :param file: the file to check
-    :param search_text: the text to search for
-    """
-    data = file.read_text()
+def shell_config():
+    shell = default_shell()
+    if shell not in SHELL_CONFIGS:
+        raise RuntimeError(f"Shell config actions support Bash and Zsh; the default shell is '{shell or 'unknown'}'.")
+    return shell, SHELL_CONFIGS[shell]
 
-    if search_text not in data:
-        print(f"Text not found: '{search_text}' — skipping.")
+
+def shell_custom_path():
+    return file_shell_custom
+
+
+def shell_custom_version():
+    return shell_custom_ver
+
+
+def get_shell_installed_version(kind="custom"):
+    if kind == "extra":
+        return None
+    if not file_shell_custom.exists():
+        return None
+    match = re.search(r"^#\s*linux-manager-shell-custom-version:\s*(.+?)\s*$", file_shell_custom.read_text(encoding="utf-8"), re.MULTILINE)
+    return match.group(1).strip() if match else None
+
+
+def is_shell_custom_enabled():
+    _, config = shell_config()
+    rc_path = config["rc_path"]
+    if not rc_path.exists():
         return False
-    else:
-        return True
+    content = rc_path.read_text(encoding="utf-8")
+    return file_shell_custom.name in content and "Linux-Manager shell config" in content
 
 
-def sudo_replace_text(file: Path, search_text: str, replace_text: str) -> None:
-    script_path = Path(__file__).resolve().parent / \
-                  "../scripts/text_writer.py"
-    subprocess.run([
-        "pkexec",
-        "python3",
-        str(script_path),
-        file,
-        search_text,
-        replace_text
-    ], check=True)
+def _ensure_shell_config_hook(shell, config):
+    rc_path = config["rc_path"]
+    original = rc_path.read_text(encoding="utf-8") if rc_path.exists() else ""
+    start_marker = "# >>> Linux-Manager shell config >>>"
+    end_marker = "# <<< Linux-Manager shell config <<<"
+    content = original
+    for old_start, old_end in (
+        (start_marker, end_marker),
+        ("# >>> Linux-Manager shell configs >>>", "# <<< Linux-Manager shell configs <<<"),
+    ):
+        start = content.find(old_start)
+        if start >= 0:
+            end = content.find(old_end, start)
+            if end >= 0:
+                end += len(old_end)
+                content = content[:start].rstrip() + "\n\n" + content[end:].lstrip()
+            else:
+                content = content[:start].rstrip()
+
+    hook = "\n".join([
+        start_marker,
+        f'if [ -r "$HOME/{file_shell_custom.name}" ]; then',
+        f'    . "$HOME/{file_shell_custom.name}"',
+        "fi",
+        end_marker,
+    ])
+    backup_path = rc_path.with_name(rc_path.name + ".linux-manager-backup")
+    if rc_path.exists() and not backup_path.exists():
+        import shutil
+        shutil.copy2(rc_path, backup_path)
+    rc_path.parent.mkdir(parents=True, exist_ok=True)
+    content = f"{content}\n\n{hook}" if content else hook
+    rc_path.write_text(content.rstrip() + "\n", encoding="utf-8")
 
 
-def sudo_write_text(file: Path, text: str) -> None:
-    script_path = Path(__file__).resolve().parent / \
-                  "../scripts/text_writer.py"
-    subprocess.run([
-        "pkexec",
-        "python3",
-        str(script_path),
-        file,
-        text
-    ], check=True)
+def update_shell_custom():
+    shell, config = shell_config()
+    target = file_shell_custom
+    version = shell_custom_ver
+    print(f"{'Updating' if target.exists() else 'Installing'} {target.name} version {version}...")
+    body = file_shell_custom_content.read_text(encoding="utf-8").rstrip()
+    target.write_text(
+        f"# Managed by Linux-Manager\n# linux-manager-shell-custom-version: {version}\n\n{body}\n",
+        encoding="utf-8",
+    )
+    _ensure_shell_config_hook(shell, config)
 
 
-def update_bash_custom() -> None:
-    """
-    Updates custom bash configuration
-    """
-    if bashrc_path.exists():
-        print(f"Updating ~/.bash_extra to version {bash_custom_version}...")
-    else:
-        print(f"Installing ~/.bash_extra version {bash_custom_version}...")
-    bashrc_path.write_text(bash_custom_text)
-
-
-def enable_bash_extra() -> bool:
-    """
-    Enables extra bash configuration to add the bash_extra file
-
-    Returns True if extra bash configuration was enabled
-    """
-    changed = False
-
-    # Enable ~/.bash_extra source line in ~/.bashrc
-    if not bashrc_path.exists():
-        bashrc_path.touch()
-    bashrc_data = bashrc_path.read_text()
-    if bashrc_extra_text not in bashrc_data:
-        with open(bashrc_path, "a") as f:
-            f.write("\n" + bashrc_extra_text + "\n")
-        changed = True
-
+def enable_shell_custom():
+    shell, config = shell_config()
+    rc_path = config["rc_path"]
+    previous = rc_path.read_text(encoding="utf-8") if rc_path.exists() else ""
+    _ensure_shell_config_hook(shell, config)
+    changed = previous != rc_path.read_text(encoding="utf-8")
     if changed:
-        print("Enabled bash extra in ~/.bashrc")
+        print(f"Enabled shared shell config in {rc_path.name}")
     return changed
 
 
-def write_bash_extra() -> None:
-    """
-    Enables extra bash configuration to add the bash extra file
-    If it already exists then it is updated.
-    """
-    # Backwards-compatible wrapper for full overwrite updates.
-    update_bash_extra()
+def sudo_replace_text(file: Path, search_text: str, replace_text: str) -> None:
+    script_path = Path(__file__).resolve().parent / "../scripts/text_writer.py"
+    subprocess.run(
+        ["pkexec", "python3", str(script_path), file, search_text, replace_text],
+        check=True,
+    )
 
 
-def update_bash_extra() -> None:
-    """
-    Overwrite ~/.bash_extra with the latest managed template and version header.
-    """
-    if bash_extra_path.exists():
-        print(f"Updating ~/.bash_extra to version {bash_extra_version}...")
-    else:
-        print(f"Installing ~/.bash_extra version {bash_extra_version}...")
-    bash_extra_path.write_text(bash_extra_text)
+def update_bash_custom():
+    update_shell_custom()
 
+
+def enable_bash_extra():
+    return enable_shell_custom()
+
+
+def write_bash_extra():
+    update_shell_custom()
+
+
+def update_bash_extra():
+    update_shell_custom()
 
 def check_multilib() -> bool:
     """
@@ -184,31 +193,6 @@ def pacman_disable_color() -> None:
     if pacman_conf.exists():
         print("Enabling color in pacman...")
         sudo_replace_text(pacman_conf, "Color", "#Color")
-
-
-def pacman_check_parallel_downloads() -> bool:
-    """
-    Checks if pacman parallel downloads is enabled.
-    Returns True if pacman parallel downloads was enabled
-    """
-    if pacman_conf.exists():
-        if "#ParallelDownloads=5" in pacman_conf.read_text():
-            return False
-        else:
-            return True
-    return False
-
-
-def pacman_enable_parallel_downloads() -> None:
-    # Enable parallel downloads
-    if pacman_conf.exists():
-        sudo_replace_text(pacman_conf, "#ParallelDownloads=5", "ParallelDownloads=5")
-
-
-def pacman_disable_parallel_downloads() -> None:
-    # Disable parallel downloads
-    if pacman_conf.exists():
-        sudo_replace_text(pacman_conf, "ParallelDownloads=5", "#ParallelDownloads=5")
 
 
 def pacman_check_database_refreshed(max_age_hours=24):

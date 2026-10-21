@@ -1,41 +1,55 @@
 from pathlib import Path
 
-# Repository paths
-REPO_ROOT = Path(__file__).resolve().parent.parent
-BIN_DIR = REPO_ROOT.joinpath("bin")
-ICONS_DIR = REPO_ROOT.joinpath("icons")
+# -----------------------------------------------------------------------------
+# App values
+# -----------------------------------------------------------------------------
+icon_height = 20
+icon_width = 20
 
-# Icon paths
-CHECKMARK_ICON_PATH = ICONS_DIR.joinpath("checkmark.svg")
-RED_X_ICON_PATH = ICONS_DIR.joinpath("red_x.svg")
-QUESTION_MARK_ICON_PATH = ICONS_DIR.joinpath("question_mark.svg")
-BLUE_RIGHT_ARROW_ICON_PATH = ICONS_DIR.joinpath("blue_right_arrow.svg")
+# -----------------------------------------------------------------------------
+# Directories
+# -----------------------------------------------------------------------------
+dir_app_root = Path(__file__).resolve().parent.parent
+dir_bin = dir_app_root.joinpath("bin")
+dir_icons = dir_app_root.joinpath("icons")
 
-# Managed versions
-BASH_EXTRA_VERSION = "1.3"
-BASH_CUSTOM_VERSION = "1.4"
+# -----------------------------------------------------------------------------
+# Icons
+# -----------------------------------------------------------------------------
+icon_checkmark = dir_icons.joinpath("checkmark.svg")
+icon_red_cross = dir_icons.joinpath("red_x.svg")
+icon_question_mark = dir_icons.joinpath("question_mark.svg")
+icon_blue_arrow = dir_icons.joinpath("blue_right_arrow.svg")
 
-# System/user config paths
-PACMAN_CONF_PATH = Path("/etc/pacman.conf")
-PACMAN_MIRRORLIST_PATH = Path("/etc/pacman.d/mirrorlist")
-PACMAN_REFLECTOR_CONFIG_PATH = Path("/etc/xdg/reflector/reflector.conf")
-XORG_KEYBOARD_CONF_PATH = Path("/etc/X11/xorg.conf.d/00-keyboard.conf")
-FSTAB_PATH = Path("/etc/fstab")
+# -----------------------------------------------------------------------------
+# Versions
+# -----------------------------------------------------------------------------
+shell_custom_ver = "1.0"
 
-BASH_EXTRA_PATH = Path.home().joinpath(".bash_extra")
-BASHRC_PATH = Path.home().joinpath(".bashrc")
-FISH_CONFIG_PATH = Path.home().joinpath(".config", "fish", "config.fish")
-ZEROCONF_DEST_PATH = Path.home().joinpath(
+# -----------------------------------------------------------------------------
+# Config paths
+# -----------------------------------------------------------------------------
+file_pacman_conf = Path("/etc/pacman.conf")
+file_pacman_mirrorlist = Path("/etc/pacman.d/mirrorlist")
+file_reflector_conf = Path("/etc/xdg/reflector/reflector.conf")
+file_xorg_kb_conf = Path("/etc/X11/xorg.conf.d/00-keyboard.conf")
+file_fstab = Path("/etc/fstab")
+file_bashrc = Path.home().joinpath(".bashrc")
+file_zshrc = Path.home().joinpath(".zshrc")
+file_shell_custom = Path.home().joinpath(".shell_custom")
+file_fish_sh_conf = Path.home().joinpath(".config", "fish", "config.fish")
+file_zeroconf_pw = Path.home().joinpath(
     ".config", "pipewire", "pipewire.conf.d", "my-zeroconf-discover.conf"
 ).resolve()
-AIRPLAY_DEST_PATH = Path.home().joinpath(
+file_airplay_pw = Path.home().joinpath(
     ".config", "pipewire", "pipewire.conf.d", "raop-discover.conf"
 ).resolve()
 
-# Template/source file paths
-BASH_EXTRA_TEMPLATE_PATH = BIN_DIR.joinpath("bash_extra.sh")
-BASH_CUSTOM_TEMPLATE_PATH = BIN_DIR.joinpath("bashrc.sh")
-ZEROCONF_TEMPLATE_PATH = BIN_DIR.joinpath("zeroconf.txt")
-AIRPLAY_TEMPLATE_PATH = BIN_DIR.joinpath("airplay.txt")
-XORG_KEYBOARD_TEMPLATE_PATH = BIN_DIR.joinpath("xorg_keyboard_layout.txt")
-REFLECTOR_TEMPLATE_PATH = BIN_DIR.joinpath("reflector.txt")
+# -----------------------------------------------------------------------------
+# Config contents
+# -----------------------------------------------------------------------------
+file_shell_custom_content = dir_bin.joinpath("shell_custom.sh")
+file_zeroconf_content = dir_bin.joinpath("zeroconf.txt")
+file_airplay_content = dir_bin.joinpath("airplay.txt")
+file_xorg_kb_content = dir_bin.joinpath("xorg_keyboard_layout.txt")
+file_reflector_conf_content = dir_bin.joinpath("reflector.txt")

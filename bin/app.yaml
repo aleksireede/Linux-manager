@@ -5,6 +5,165 @@
   category: System utils
   conflicts: []
   fedora_app_name: 7zip
+- name: Alacritty
+  description: Default description for Alacritty
+  source: pacman
+  category: Terminal Emulator
+  conflicts: []
+  arch_app_name: alacritty
+  fedora_app_name: null
+- name: Aur auto vote
+  description: Default description for Aur auto vote
+  source: paru
+  category: Utilities
+  conflicts: []
+  arch_app_name: aur-sync-vote
+  fedora_app_name: null
+- name: Bash
+  description: Default description for Bash
+  source: pacman
+  category: Terminal Emulator
+  conflicts: []
+  arch_app_name: bash
+  fedora_app_name: null
+- name: Bat(cat)
+  description: Default description for Bat(cat)
+  source: paru
+  category: Utilities
+  conflicts: []
+  arch_app_name: bat-cat-git
+  fedora_app_name: null
+- name: Brave Browser
+  title: Brave Browser
+  description: Chromium-based browser with built-in privacy defaults from the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+  fedora_app_name: brave-browser
+  arch_app_name: brave-bin
+  fedora_repo_id: brave-browser
+  fedora_repo_file_url: https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+  fedora_gpg_key: https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
+  fedora_gpg_key_owner: Brave Software
+  icon_url: https://brave.com/static-assets/images/cropped-brave_appicon_release-192x192.png
+- name: Chromium
+  description: Open source Chromium browser package from the Arch repositories.
+  source: pacman
+  category: Browsers
+  conflicts: []
+  fedora_app_name: chromium
+  title: Chromium
+  icon_url: https://www.chromium.org/_assets/icon-chromium-96.png
+  arch_app_name: chromium
+- name: Dolphin emulator
+  description: Default description for dolphin-emu
+  source: pacman
+  category: Games
+  conflicts:
+  - dolphin-emu-git
+  fedora_app_name: dolphin-emu
+  arch_app_name: dolphin-emu
+- name: Epic Games
+  description: Default description for Epic Games
+  source: paru
+  category: Games
+  conflicts:
+  - epic-games-launcher
+  - epic-games-launcher-proton-bin
+  arch_app_name: epic-games-launcher-bin
+  fedora_app_name: null
+- name: Firedragon
+  description: Floorp-based browser build distributed for Arch through the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+  fedora_app_name: firedragon
+  title: Firedragon
+  icon_url: https://dl.flathub.org/media/org/garudalinux/firedragon/6d155e34e863974aef1ef4f8382d8896/icons/128x128/org.garudalinux.firedragon.png
+  arch_app_name: firedragon
+- name: Firefox
+  description: Mozilla web browser focused on standards support and privacy.
+  source: pacman
+  category: Browsers
+  conflicts: []
+  fedora_app_name: firefox
+  title: Firefox
+  icon_url: https://www.firefox.com/media/img/favicons/firefox/browser/favicon-196x196.59e3822720be.png
+  arch_app_name: firefox
+- name: Gnome terminal (kgx)
+  description: Default description for Gnome terminal
+  source: pacman
+  category: Terminal Emulator
+  conflicts:
+  - gnome-console-git
+  - kgx-git
+  arch_app_name: gnome-console
+  fedora_app_name: gnome-console
+- name: Google Chrome
+  description: Official Google Chrome browser package from the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+  fedora_app_name: google-chrome-stable
+  title: Google Chrome
+  icon_url: https://www.google.com/chrome/static/images/favicons/favicon-96x96.png
+  arch_app_name: google-chrome
+- name: Hyper teminal
+  description: Default description for Hyper teminal
+  source: paru
+  category: Terminal Emulator
+  conflicts:
+  - hyperterm
+  arch_app_name: hyper
+  fedora_app_name: null
+- name: LXDE terminal
+  description: Default description for LXDE terminal
+  source: pacman
+  category: Terminal Emulator
+  conflicts: []
+  arch_app_name: lxterminal
+  fedora_app_name: null
+- name: Mate terminal
+  description: Default description for Mate terminal
+  source: pacman
+  category: Terminal Emulator
+  conflicts: []
+  arch_app_name: mate-terminal
+  fedora_app_name: null
+- name: Opera
+  description: Chromium-based browser with built-in messaging and VPN features.
+  source: paru
+  category: Browsers
+  conflicts: []
+  fedora_app_name: opera-stable
+  title: Opera
+  icon_url: https://cdn-production-opera-website.operacdn.com/staticfiles/assets/images/favicon/opera/apple-touch-icon-180x180.00d9278d6de6.png
+  arch_app_name: opera
+- name: Tor Browser
+  description: Tor Browser bundle packaged for Arch through the AUR.
+  source: paru
+  category: Browsers
+  conflicts: []
+  fedora_app_name: torbrowser-launcher
+  title: Tor Browser
+  icon_url: https://www.torproject.org/static/images/favicon/favicon.png
+  arch_app_name: tor-browser-bin
+- name: Vivaldi
+  description: Feature-heavy Chromium-based browser package from the Arch repositories.
+  source: pacman
+  category: Browsers
+  conflicts: []
+  fedora_app_name: vivaldi-stable
+  title: Vivaldi
+  icon_url: https://vivaldi.com/wp-content/uploads/cropped-viv_icon-500px.png
+  arch_app_name: vivaldi
+- name: ZSH
+  description: Default description for ZSH
+  source: pacman
+  category: Terminal Emulator
+  conflicts: []
+  arch_app_name: zsh
+  fedora_app_name: null
 - name: alsa-plugins
   description: Default description for alsa-plugins
   source: Unknown
@@ -62,7 +221,7 @@
 - name: balena-etcher
   description: Default description for balena-etcher
   source: pacman
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: null
 - name: base-devel
@@ -101,27 +260,6 @@
   category: System utils
   conflicts: []
   fedora_app_name: bluez-tools
-- name: brave
-  title: Brave Browser
-  description: Chromium-based browser with built-in privacy defaults from the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-  fedora_app_name: brave-browser
-  arch_app_name: brave-bin
-  fedora_repo_id: brave-browser
-  fedora_repo_file_url: https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-  fedora_gpg_key: https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
-  fedora_gpg_key_owner: Brave Software
-  icon_url: https://brave.com/static-assets/images/cropped-brave_appicon_release-192x192.png
-- name: chromium
-  description: Open source Chromium browser package from the Arch repositories.
-  source: pacman
-  category: Browsers
-  conflicts: []
-  fedora_app_name: chromium
-  title: Chromium
-  icon_url: https://www.chromium.org/_assets/icon-chromium-96.png
 - name: cowsay-bin
   description: Default description for cowsay-bin
   source: paru
@@ -134,12 +272,6 @@
   category: KDE
   conflicts: []
   fedora_app_name: dolphin
-- name: dolphin-emu
-  description: Default description for dolphin-emu
-  source: pacman
-  category: Utilities
-  conflicts: []
-  fedora_app_name: dolphin-emu
 - name: dolphin-plugins
   description: Default description for dolphin-plugins
   source: pacman
@@ -164,12 +296,6 @@
   category: System utils
   conflicts: []
   fedora_app_name: efibootmgr
-- name: epic-games-launcher-bin
-  description: Default description for epic-games-launcher-bin
-  source: paru
-  category: Utilities
-  conflicts: []
-  fedora_app_name: null
 - name: expac
   description: Default description for expac
   source: pacman
@@ -212,22 +338,6 @@
   category: System utils
   conflicts: []
   fedora_app_name: ffmpegthumbs
-- name: firedragon
-  description: Floorp-based browser build distributed for Arch through the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-  fedora_app_name: firedragon
-  title: Firedragon
-  icon_url: https://dl.flathub.org/media/org/garudalinux/firedragon/6d155e34e863974aef1ef4f8382d8896/icons/128x128/org.garudalinux.firedragon.png
-- name: firefox
-  description: Mozilla web browser focused on standards support and privacy.
-  source: pacman
-  category: Browsers
-  conflicts: []
-  fedora_app_name: firefox
-  title: Firefox
-  icon_url: https://www.firefox.com/media/img/favicons/firefox/browser/favicon-196x196.59e3822720be.png
 - name: fontconfig
   description: Default description for fontconfig
   source: Unknown
@@ -243,7 +353,7 @@
 - name: gamemode
   description: Default description for gamemode
   source: Unknown
-  category: Utilities
+  category: Games
   conflicts: []
   fedora_app_name: gamemode
 - name: ghex
@@ -261,7 +371,7 @@
 - name: gimp
   description: Default description for gimp
   source: Unknown
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: gimp
 - name: git
@@ -282,18 +392,10 @@
   category: System utils
   conflicts: []
   fedora_app_name: glow
-- name: google-chrome
-  description: Official Google Chrome browser package from the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-  fedora_app_name: google-chrome-stable
-  title: Google Chrome
-  icon_url: https://www.google.com/chrome/static/images/favicons/favicon-96x96.png
 - name: goverlay
   description: Default description for goverlay
   source: pacman
-  category: Utilities
+  category: Games
   conflicts: []
   fedora_app_name: goverlay
 - name: gstreamer
@@ -356,7 +458,7 @@
 - name: keepassxc
   description: Default description for keepassxc
   source: Unknown
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: keepassxc
 - name: kimageformats
@@ -386,7 +488,7 @@
 - name: konsole
   description: Default description for konsole
   source: pacman
-  category: System utils
+  category: Terminal Emulator
   conflicts: []
   fedora_app_name: konsole
 - name: kscreen
@@ -434,7 +536,7 @@
 - name: lib32-gamemode
   description: Default description for lib32-gamemode
   source: Unknown
-  category: Utilities
+  category: Games
   conflicts: []
   fedora_app_name: gamemode.i686
 - name: lib32-giflib
@@ -482,7 +584,7 @@
 - name: lib32-mangohud
   description: Default description for lib32-mangohud
   source: Unknown
-  category: Utilities
+  category: Games
   conflicts: []
   fedora_app_name: mangohud.i686
 - name: lib32-mesa
@@ -530,7 +632,7 @@
 - name: libreoffice-fresh
   description: Default description for libreoffice-fresh
   source: Unknown
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: libreoffice
 - name: linux-firmware-amdgpu
@@ -560,7 +662,7 @@
 - name: localsend-bin
   description: Default description for localsend-bin
   source: Unknown
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: null
 - name: lolcat
@@ -596,7 +698,7 @@
 - name: mangohud
   description: Default description for mangohud
   source: Unknown
-  category: Utilities
+  category: Games
   conflicts: []
   fedora_app_name: mangohud
 - name: maven
@@ -614,19 +716,19 @@
 - name: mesa
   description: Default description for mesa
   source: Unknown
-  category: System utils
+  category: Graphics
   conflicts: []
   fedora_app_name: mesa-dri-drivers
 - name: mesa-utils
   description: Default description for mesa-utils
   source: Unknown
-  category: System utils
+  category: Graphics
   conflicts: []
   fedora_app_name: mesa-demos
 - name: mission-center
   description: Default description for mission-center
   source: Unknown
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: null
 - name: nmap
@@ -695,14 +797,6 @@
   category: System utils
   conflicts: []
   fedora_app_name: openal-soft
-- name: opera
-  description: Chromium-based browser with built-in messaging and VPN features.
-  source: paru
-  category: Browsers
-  conflicts: []
-  fedora_app_name: opera-stable
-  title: Opera
-  icon_url: https://cdn-production-opera-website.operacdn.com/staticfiles/assets/images/favicon/opera/apple-touch-icon-180x180.00d9278d6de6.png
 - name: partitionmanager
   description: Default description for partitionmanager
   source: pacman
@@ -789,7 +883,7 @@
   fedora_app_name: plymouth-kcm
 - name: png2svg
   description: Default description for png2svg
-  source: Unknown
+  source: pacman
   category: System utils
   conflicts: []
   fedora_app_name: null
@@ -805,7 +899,7 @@
   category: System utils
   conflicts: []
   fedora_app_name: null
-- name: prismlauncher
+- name: prismlauncher(mc)
   description: Open source Minecraft launcher for managing modded instances.
   source: pacman
   category: Games
@@ -813,22 +907,23 @@
   fedora_app_name: prismlauncher
   title: Prism Launcher
   icon_url: https://dl.flathub.org/media/org/prismlauncher/PrismLauncher/9a1f7fe85e8ccfbd459c1dd3c70663af/icons/128x128/org.prismlauncher.PrismLauncher.png
+  arch_app_name: prismlauncher
 - name: protonplus
   description: Default description for protonplus
   source: paru
-  category: Utilities
+  category: Games
   conflicts: []
   fedora_app_name: null
 - name: protontricks
   description: Default description for protontricks
   source: pacman
-  category: Utilities
+  category: Games
   conflicts: []
   fedora_app_name: protontricks
 - name: pwvucontrol
   description: Default description for pwvucontrol
   source: Unknown
-  category: Utilities
+  category: Pipewire
   conflicts: []
   fedora_app_name: null
 - name: python-pip
@@ -858,7 +953,7 @@
 - name: qbittorrent
   description: Default description for qbittorrent
   source: Unknown
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: qbittorrent
 - name: qt6-multimedia
@@ -873,12 +968,14 @@
   category: Utilities
   conflicts: []
   fedora_app_name: rclone-browser
-- name: refind
+- name: refind bootloader
   description: Default description for refind
   source: pacman
   category: System utils
-  conflicts: []
+  conflicts:
+  - refind-git
   fedora_app_name: rEFInd
+  arch_app_name: refind
 - name: reflector
   description: Default description for reflector
   source: pacman
@@ -935,7 +1032,7 @@
 - name: spotify-launcher
   description: Default description for spotify-launcher
   source: pacman
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: null
 - name: steam
@@ -957,17 +1054,9 @@
 - name: telegram-desktop
   description: Default description for telegram-desktop
   source: Unknown
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: null
-- name: tor-browser-bin
-  description: Tor Browser bundle packaged for Arch through the AUR.
-  source: paru
-  category: Browsers
-  conflicts: []
-  fedora_app_name: torbrowser-launcher
-  title: Tor Browser
-  icon_url: https://www.torproject.org/static/images/favicon/favicon.png
 - name: tree
   description: Default description for tree
   source: pacman
@@ -1009,18 +1098,10 @@
   fedora_gpg_key_owner: Microsoft
   title: Visual Studio Code
   icon_url: https://commons.wikimedia.org/wiki/Special:Redirect/file/Visual%20Studio%20Code%201.35%20icon.png
-- name: vivaldi
-  description: Feature-heavy Chromium-based browser package from the Arch repositories.
-  source: pacman
-  category: Browsers
-  conflicts: []
-  fedora_app_name: vivaldi-stable
-  title: Vivaldi
-  icon_url: https://vivaldi.com/wp-content/uploads/cropped-viv_icon-500px.png
 - name: vkbasalt
   description: Default description for vkbasalt
   source: paru
-  category: System utils
+  category: Graphics
   conflicts: []
   fedora_app_name: null
 - name: vulkan-radeon
@@ -1038,7 +1119,7 @@
 - name: waywallen
   description: Default description for waywallen
   source: paru
-  category: Utilities
+  category: Applications
   conflicts: []
   fedora_app_name: null
 - name: wireplumber

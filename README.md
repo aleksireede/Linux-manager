@@ -15,7 +15,7 @@ Run the setup script from a terminal:
 wget -qO- https://raw.githubusercontent.com/aleksireede/arch-mysetup/refs/heads/main/main/setup.sh | bash
 ```
 
-The setup script installs the system dependencies, installs Linux-Manager under `/opt/linux-manager`, and creates the `linux-manager` and `linux-manager-update` commands. It starts the application when setup completes.
+The setup script installs the system dependencies on Arch or Fedora (DNF and DNF5), installs Linux-Manager under `/opt/linux-manager`, and creates the `linux-manager` and `linux-manager-update` commands. It also installs the application menu entry and icon, then starts the application when setup completes. The updater refreshes the launcher, menu entry, and icon after updating the app.
 
 ## Run and update
 

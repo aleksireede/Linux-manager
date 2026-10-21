@@ -1,5 +1,6 @@
 import os
 import secrets
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -8,7 +9,7 @@ from pathlib import Path
 from functools import lru_cache
 import yaml
 import configparser
-from programs.app_settings import fedora_conflict_policy
+from programs.app_settings import external_terminal, package_conflict_policy
 
 # Filesystem types that are backed by the network (fstab "type" field).
 NETWORK_FS_TYPES = {
@@ -456,40 +457,50 @@ def install_paru():
         return False
 
 
-# open a command in a terminal window
-# now supports more terminals
+# (preference id, executable, display name, arguments, accepts command argv)
+EXTERNAL_TERMINALS = [
+    ("kgx", "kgx", "Console (KGX)", ["--"], True),
+    ("ptyxis", "ptyxis", "Ptyxis", ["--"], True),
+    ("gnome-terminal", "gnome-terminal", "GNOME Terminal", ["--"], True),
+    ("konsole", "konsole", "Konsole", ["-e"], True),
+    ("xfce4-terminal", "xfce4-terminal", "Xfce Terminal", ["-e"], False),
+    ("xterm", "xterm", "XTerm", ["-e"], True),
+    ("alacritty", "alacritty", "Alacritty", ["-e"], True),
+    ("deepin-terminal", "deepin-terminal", "Deepin Terminal", ["--run-script"], False),
+    ("hyper", "hyper", "Hyper", ["--"], False),
+    ("putty", "putty", "PuTTY", ["-e"], False),
+    ("mate-terminal", "mate-terminal", "MATE Terminal", ["--"], True),
+]
+
+
+def external_terminal_options():
+    """Return installed external terminal choices as (id, label) pairs."""
+    options = [("auto", "Automatic (first available)")]
+    options.extend(
+        (key, label) for key, executable, label, _, _ in EXTERNAL_TERMINALS
+        if shutil.which(executable)
+    )
+    return options
+
 
 def open_terminal(command):
-    terminals = [
-        ("kgx", ["--"], True),
-        ("konsole", ["-e"], False),
-        ("xfce4-terminal", ["-e"], False),
-        ("xterm", ["-e"], False),
-        ("alacritty", ["-e"], True),  # True: command is a list
-        ("deepin-terminal", ["--run-script"], False),
-        ("hyper", ["--"], False),
-        ("putty", ["-e"], False),
-        ("mate-terminal", ["--"], False),
-    ]
+    command_parts = [str(part) for part in command] if isinstance(command, (list, tuple)) else [str(command)]
+    command_str = shlex.join(command_parts)
+    preferred = external_terminal()
+    terminals = EXTERNAL_TERMINALS
+    if preferred != "auto":
+        terminals = sorted(terminals, key=lambda item: item[0] != preferred)
 
-    if isinstance(command, list):
-        command_str = " ".join(command)
-    else:
-        command_str = command
+    for _, term, _, args, accepts_argv in terminals:
+        if not shutil.which(term):
+            continue
+        try:
+            invocation = [term, *args, *command_parts] if accepts_argv else [term, *args, command_str]
+            return subprocess.Popen(invocation)
+        except (OSError, ValueError, subprocess.SubprocessError):
+            continue
 
-    for term, args, use_list in terminals:
-        if shutil.which(term):
-            try:
-                if use_list:
-                    process = subprocess.Popen(
-                        [term, *args, *command] if isinstance(command, list) else [term, *args, command])
-                else:
-                    process = subprocess.Popen([term, *args, command_str])
-                return process
-            except (OSError, ValueError, subprocess.SubprocessError):
-                continue
-
-    raise RuntimeError("No supported terminal emulator found")
+    raise RuntimeError("No supported terminal emulator found. Install one or choose an available terminal in Settings.")
 
 
 def app_install(apps, command: str):
@@ -502,28 +513,127 @@ def app_install(apps, command: str):
         )
     if command == "paru":
         install_command= ["paru", "-S", "--skipreview", "--needed", "--quiet", "--color", "always"]
+        conflict_policy = package_conflict_policy()
+        if conflict_policy == "replace":
+            install_command.append("--noconfirm")
+        elif conflict_policy == "ask":
+            install_command.remove("--quiet")
         arch_apps = [arch_app_name(app) for app in apps] if isinstance(apps, list) else arch_app_name(apps)
+        if conflict_policy == "skip":
+            return _install_packages_individually(arch_apps, install_command)
+        if conflict_policy == "ask":
+            return _install_packages_interactively(arch_apps, install_command)
         return apps_helper(arch_apps, install_command)
     elif command == "pacman":
         if package_manager() in {"dnf", "dnf5"}:
             fedora_apps = [_system_package_name(app) for app in apps] if isinstance(apps, list) else _system_package_name(apps)
             if not fedora_apps or (isinstance(fedora_apps, list) and any(not app for app in fedora_apps)):
                 return None
-            auth_command = "pkexec" if command_exists("pkexec") else "sudo"
-            command_line = [auth_command, package_manager(), "install", "-y", *fedora_apps]
-            conflict_policy = fedora_conflict_policy()
+            conflict_policy = package_conflict_policy()
+            auth_command = "sudo" if conflict_policy == "ask" else (
+                "pkexec" if command_exists("pkexec") else "sudo"
+            )
+            command_line = [auth_command, package_manager(), "install"]
             if conflict_policy == "replace":
-                command_line.insert(3, "--allowerasing")
-            else:
-                command_line.insert(3, "--skip-broken")
+                command_line.extend(["-y", "--allowerasing"])
+            elif conflict_policy == "skip":
+                command_line.extend(["-y", "--skip-broken"])
+            command_line.extend(fedora_apps)
+            if conflict_policy == "ask":
+                return _run_interactive_command(command_line)
+            if auth_command == "sudo":
+                return open_terminal(command_line)
             if auth_command == "pkexec":
                 return subprocess.Popen(command_line, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         text=True, bufsize=1)
-            return open_terminal(command_line)
         install_command = ["sudo", "pacman", "-S", "--needed", "--quiet", "--color", "always"]
+        conflict_policy = package_conflict_policy()
+        if conflict_policy == "replace":
+            install_command.append("--noconfirm")
+        elif conflict_policy == "ask":
+            install_command.remove("--quiet")
         arch_apps = [arch_app_name(app) for app in apps] if isinstance(apps, list) else arch_app_name(apps)
+        if conflict_policy == "skip":
+            return _install_packages_individually(arch_apps, install_command)
+        if conflict_policy == "ask":
+            return _install_packages_interactively(arch_apps, install_command)
         return apps_helper(arch_apps, install_command)
     return None
+
+
+def _install_packages_individually(packages, command):
+    """Keep one package conflict from cancelling the rest of an install batch."""
+    if not packages:
+        return None
+
+    package_args = " ".join(shlex.quote(package) for package in packages)
+    command_args = shlex.join(command)
+    script = (
+        "#!/usr/bin/env bash\n"
+        'trap \'rm -f -- "$0"\' EXIT\n'
+        "failed=0\n"
+        f"packages=({package_args})\n"
+        'for package in "${packages[@]}"; do\n'
+        f'    if {command_args} "$package"; then\n'
+        "        :\n"
+        "    else\n"
+        '        printf "Skipping %s after a package conflict or install error.\\n" "$package"\n'
+        "        failed=1\n"
+        "    fi\n"
+        "done\n"
+        'if (( failed )); then\n'
+        '    printf "\\nSome packages were skipped. Press Enter to close this terminal."\n'
+        '    read -r\n'
+        'fi\n'
+    )
+    script_file = tempfile.NamedTemporaryFile(
+        mode="w", encoding="utf-8", prefix="linux-manager-install-", suffix=".sh", delete=False
+    )
+    script_path = Path(script_file.name)
+    try:
+        with script_file:
+            script_file.write(script)
+        script_path.chmod(0o700)
+        return open_terminal([str(script_path)])
+    except Exception:
+        script_path.unlink(missing_ok=True)
+        raise
+
+
+def _install_packages_interactively(packages, command):
+    """Run one interactive package transaction and keep its terminal visible."""
+    if not packages:
+        return None
+
+    return _run_interactive_command([*command, *packages])
+
+
+def _run_interactive_command(command):
+    """Run an interactive command and keep its terminal visible until acknowledged."""
+
+    script = (
+        "#!/usr/bin/env bash\n"
+        'trap \'rm -f -- "$0"\' EXIT\n'
+        f"{shlex.join(command)}\n"
+        'status=$?\n'
+        'if (( status != 0 )); then\n'
+        '    printf "\\nInstallation command exited with status %s. Press Enter to close this terminal." "$status"\n'
+        '    read -r\n'
+        'fi\n'
+        'exit "$status"\n'
+    )
+    script_file = tempfile.NamedTemporaryFile(
+        mode="w", encoding="utf-8", prefix="linux-manager-install-", suffix=".sh", delete=False
+    )
+    script_path = Path(script_file.name)
+    try:
+        with script_file:
+            script_file.write(script)
+        script_path.chmod(0o700)
+        return open_terminal([str(script_path)])
+    except Exception:
+        script_path.unlink(missing_ok=True)
+        raise
 
 def remove_apps(apps, command: str):
     remove_command = []

@@ -3,14 +3,15 @@ import subprocess
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QTimer
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QPushButton,
-    QListWidget, QListWidgetItem, QMessageBox, QLabel
+    QListWidget, QListWidgetItem, QMessageBox, QLabel, QProgressBar,
 )
 
 from programs.apps_file import load_apps_from_file, load_yaml
+from programs.app_settings import package_conflict_policy
 from programs.installer_logic import (
     is_app_installed, app_install, detect_install_method,
     get_install_method_from_source, is_fedora, fedora_app_name,
-    fedora_catalog_app_name, fedora_conflict_policy, fedora_install_type,
+    fedora_catalog_app_name, fedora_install_type,
     list_apps, package_manager, fedora_packages_available,
     _fedora_repository_ready,
 )
@@ -29,6 +30,7 @@ class AppManagerWorker(QObject):
     finished = pyqtSignal(list, list, list, bool)  # all, installable, unavailable, checked
     error = pyqtSignal(str)
     progress = pyqtSignal(str)
+    check_progress = pyqtSignal(int, int)
 
     def __init__(self, check_fedora_packages=False):
         super().__init__()
@@ -45,16 +47,19 @@ class AppManagerWorker(QObject):
                     app for app in all_apps
                     if fedora_app_name(app) or fedora_install_type(app)
                 ]
-            self.progress.emit(f"Loaded {len(all_apps)} apps; checking installed apps")
+            total = len(all_apps)
+            self.progress.emit(f"Checking installed apps (0/{total})")
+            self.check_progress.emit(0, total)
             # 2. Filter for what's actually missing
             if is_fedora() and package_manager() in {"dnf", "dnf5"}:
                 _fedora_repository_ready.cache_clear()
                 installed = set(list_apps("pacman"))
                 candidates = []
                 for index, app in enumerate(all_apps, 1):
-                    self.progress.emit(f"Checking apps {index}/{len(all_apps)}")
                     if app not in installed and not is_app_installed(app):
                         candidates.append(app)
+                    self.check_progress.emit(index, total)
+                    self.progress.emit(f"Checking installed apps ({index}/{total})")
                 if self.check_fedora_packages:
                     self.progress.emit(f"Checking apps 0/{len(candidates)}")
                     available = fedora_packages_available(candidates)
@@ -66,8 +71,12 @@ class AppManagerWorker(QObject):
                     unavailable = []
                 checked = self.check_fedora_packages
             else:
-                uninstalled = [app for app in all_apps
-                               if not is_app_installed(app) and detect_install_method(app) is not None]
+                uninstalled = []
+                for index, app in enumerate(all_apps, 1):
+                    if not is_app_installed(app) and detect_install_method(app) is not None:
+                        uninstalled.append(app)
+                    self.check_progress.emit(index, total)
+                    self.progress.emit(f"Checking installed apps ({index}/{total})")
                 unavailable = []
                 checked = True
             # 3. Return both so the UI knows the full list AND the display list
@@ -113,13 +122,13 @@ class InstallOperationWorker(QObject):
         final_rpm_packages = self.installed_rpm_packages()
         skipped_apps = [app for app in self.attempted_apps if not is_app_installed(app)]
         replaced_packages = []
-        if fedora_conflict_policy() == "replace" and self.initial_rpm_packages and final_rpm_packages:
+        if package_conflict_policy() == "replace" and self.initial_rpm_packages and final_rpm_packages:
             replaced_packages = sorted(self.initial_rpm_packages - final_rpm_packages, key=str.casefold)
         self.summary_ready.emit({
             "unavailable": list(dict.fromkeys(self.unavailable_apps)),
             "skipped": list(dict.fromkeys(skipped_apps)),
             "replaced": [fedora_catalog_app_name(name) for name in replaced_packages],
-            "policy": fedora_conflict_policy(),
+            "policy": package_conflict_policy(),
         })
 
     def run(self):
@@ -195,6 +204,7 @@ class ArchAppInstaller(QMainWindow):
         self.back_button = None
         self.list_widget = None
         self.loading_label = None
+        self.check_progress_bar = None
         self.bottom_layout = None
         self.third_layout = None
         self.secondary_layout = None
@@ -228,6 +238,10 @@ class ArchAppInstaller(QMainWindow):
         self.loading_label = QLabel("Loading apps...")
         self.loading_label.setObjectName("syncStatusLabel")
         self.loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.check_progress_bar = QProgressBar()
+        self.check_progress_bar.setFormat("%v/%m apps checked")
+        self.check_progress_bar.setTextVisible(True)
+        self.check_progress_bar.hide()
 
         # List widget to display Apps
         self.list_widget = QListWidget()
@@ -259,6 +273,7 @@ class ArchAppInstaller(QMainWindow):
         self.main_layout.addLayout(self.third_layout)
         self.main_layout.addSpacing(20)
         self.main_layout.addWidget(self.loading_label)
+        self.main_layout.addWidget(self.check_progress_bar)
         self.main_layout.addWidget(self.list_widget)
         self.main_layout.addSpacing(20)
         self.main_layout.addLayout(self.bottom_layout)
@@ -272,6 +287,9 @@ class ArchAppInstaller(QMainWindow):
         if package_manager() in {"dnf", "dnf5"}:
             self.install_button.setEnabled(False)
         self.loading_label.show()
+        self.check_progress_bar.setRange(0, 0)
+        self.check_progress_bar.setFormat("Preparing app check...")
+        self.check_progress_bar.show()
         self.refresh_button.setEnabled(False)
         self.select_all_button.setEnabled(False)
         loading_text = (
@@ -291,6 +309,7 @@ class ArchAppInstaller(QMainWindow):
         self.worker.finished.connect(self.update_ui_with_apps)
         self.worker.error.connect(self.on_error)
         self.worker.progress.connect(self.update_progress)
+        self.worker.check_progress.connect(self.update_check_progress)
 
         # Standard Cleanup
         self.worker.finished.connect(self.thread.quit)
@@ -311,6 +330,7 @@ class ArchAppInstaller(QMainWindow):
             self, "Error", f"Failed to load apps: {error_message}")
         self.stop_loading_animation()
         self.loading_label.hide()
+        self.check_progress_bar.hide()
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
         self.install_button.setEnabled(
@@ -321,6 +341,11 @@ class ArchAppInstaller(QMainWindow):
         self.loading_base_text = message
         self.loading_dot_count = 0
         self.loading_label.setText(f"{message}.")
+
+    def update_check_progress(self, checked, total):
+        self.check_progress_bar.setRange(0, max(total, 1))
+        self.check_progress_bar.setValue(checked)
+        self.check_progress_bar.setFormat(f"{checked}/{total} apps checked")
 
     def refresh_app_list(self):
         """Only handles UI state before/during the check"""
@@ -343,6 +368,8 @@ class ArchAppInstaller(QMainWindow):
             if not self.thread.wait(3000):  # Wait up to 3 seconds
                 print("Thread timed out, terminating...")
                 self.thread.terminate()
+        self.setup_window.show_page(self.setup_window.apps_page_button)
+        self.setup_window.show()
         event.accept()
 
     def toggle_select_all_apps(self):
@@ -481,6 +508,7 @@ class ArchAppInstaller(QMainWindow):
             self.unavailable_apps = list(unavailable_apps)
         self.stop_loading_animation()
         self.loading_label.hide()
+        self.check_progress_bar.hide()
         self.refresh_button.setEnabled(True)
         self.select_all_button.setEnabled(True)
         self.install_button.setEnabled(
@@ -520,6 +548,7 @@ class ArchAppInstaller(QMainWindow):
             self.list_widget.addItem(item)
 
     def go_back_to_setup(self):
+        self.setup_window.show_page(self.setup_window.apps_page_button)
         self.setup_window.show()
         self.hide()
 

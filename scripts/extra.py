@@ -2,31 +2,31 @@ import subprocess
 from pathlib import Path
 
 from programs.config import (
-    ZEROCONF_DEST_PATH,
-    AIRPLAY_DEST_PATH,
-    XORG_KEYBOARD_CONF_PATH,
-    PACMAN_MIRRORLIST_PATH,
-    PACMAN_REFLECTOR_CONFIG_PATH,
-    ZEROCONF_TEMPLATE_PATH,
-    AIRPLAY_TEMPLATE_PATH,
-    XORG_KEYBOARD_TEMPLATE_PATH,
-    REFLECTOR_TEMPLATE_PATH,
+    file_zeroconf_pw,
+    file_airplay_pw,
+    file_xorg_kb_conf,
+    file_pacman_mirrorlist,
+    file_reflector_conf,
+    file_zeroconf_content,
+    file_airplay_content,
+    file_xorg_kb_content,
+    file_reflector_conf_content,
 )
 from programs.installer_logic import command_exists
 from scripts.text_writer import write_text
 
 # files
-zeroconf_dest_path = ZEROCONF_DEST_PATH
-airplay_dest_path = AIRPLAY_DEST_PATH
-xorg_keyboard_conf_path = XORG_KEYBOARD_CONF_PATH
-pacman_mirrorlist_path = PACMAN_MIRRORLIST_PATH
-pacman_reflector_config_path = PACMAN_REFLECTOR_CONFIG_PATH
+zeroconf_dest_path = file_zeroconf_pw
+airplay_dest_path = file_airplay_pw
+xorg_keyboard_conf_path = file_xorg_kb_conf
+pacman_mirrorlist_path = file_pacman_mirrorlist
+pacman_reflector_config_path = file_reflector_conf
 
 # texts
-zeroconf_text = ZEROCONF_TEMPLATE_PATH.read_text()
-airplay_text = AIRPLAY_TEMPLATE_PATH.read_text()
-xorg_keyboard_conf_text = XORG_KEYBOARD_TEMPLATE_PATH.read_text()
-reflector_text = REFLECTOR_TEMPLATE_PATH.read_text()
+zeroconf_text = file_zeroconf_content.read_text()
+airplay_text = file_airplay_content.read_text()
+xorg_keyboard_conf_text = file_xorg_kb_content.read_text()
+reflector_text = file_reflector_conf_content.read_text()
 
 
 def reflector_service_timer():

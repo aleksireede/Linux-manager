@@ -17,6 +17,7 @@ from gui.setup_window import SetupWindow
 from gui.advanced_tweaks import AdvancedTweaks
 from gui.setup_updates_page import SetupUpdatesPage
 from gui.network_drives_page import NetworkDrivesPage
+from gui.app_settings_page import AppSettingsPage
 
 app = QApplication(sys.argv)
 
@@ -24,79 +25,51 @@ app = QApplication(sys.argv)
 setup_window = SetupWindow()
 load_yaml()
 
-# Reference to the other windows
+# References to auxiliary windows and embedded pages
 app_installer_window = None
 app_uninstaller_window = None
 advanced_tweaks_window = None
 apps_page_window = None
 updates_page_window = None
 network_drives_page_window = None
-
-
-def ensure_apps_page():
-    global apps_page_window
-    if apps_page_window is None:
-        apps_page_window = AppsPage(setup_window)
-    return apps_page_window
+settings_page_window = None
 
 
 def open_app_installer():
     global app_installer_window
-    apps_page = ensure_apps_page()
     if app_installer_window is None:
-        app_installer_window = ArchAppInstaller(apps_page)
+        app_installer_window = ArchAppInstaller(setup_window)
+    setup_window.show_page(setup_window.apps_page_button)
     app_installer_window.show()
     setup_window.hide()
 
 
 def open_app_uninstaller():
     global app_uninstaller_window
-    apps_page = ensure_apps_page()
     if app_uninstaller_window is None:
-        app_uninstaller_window = AppUninstaller(apps_page)
+        app_uninstaller_window = AppUninstaller(setup_window)
+    setup_window.show_page(setup_window.apps_page_button)
     app_uninstaller_window.show()
     setup_window.hide()
 
 
-def open_advanced_tweaks():
-    global advanced_tweaks_window
-    if advanced_tweaks_window is None:
-        advanced_tweaks_window = AdvancedTweaks(setup_window)
-    advanced_tweaks_window.show()
-    setup_window.hide()
-
-
-def open_apps_page():
-    apps_page = ensure_apps_page()
-    apps_page.show()
-    setup_window.hide()
-
-
-def open_updates_page():
-    global updates_page_window
-    if updates_page_window is None:
-        updates_page_window = SetupUpdatesPage(setup_window)
-    updates_page_window.show()
-    setup_window.hide()
-
-
-def open_network_drives_page():
-    global network_drives_page_window
-    if network_drives_page_window is None:
-        network_drives_page_window = NetworkDrivesPage(setup_window)
-    network_drives_page_window.show()
-    setup_window.hide()
-
-
 def main():
-    # Configure the setup window to call other windows
+    global apps_page_window, updates_page_window, network_drives_page_window, advanced_tweaks_window, settings_page_window
+    apps_page_window = AppsPage(setup_window)
+    updates_page_window = SetupUpdatesPage(setup_window)
+    network_drives_page_window = NetworkDrivesPage(setup_window)
+    advanced_tweaks_window = AdvancedTweaks(setup_window)
+    settings_page_window = AppSettingsPage(setup_window)
+    setup_window.add_page(setup_window.apps_page_button, apps_page_window)
+    setup_window.add_page(setup_window.updates_page_button, updates_page_window)
+    setup_window.add_page(setup_window.network_drives_page_button, network_drives_page_window)
+    setup_window.add_page(setup_window.advanced_tweak_btn, advanced_tweaks_window)
+    setup_window.add_page(setup_window.settings_page_button, settings_page_window)
+    setup_window.show_page(setup_window.apps_page_button)
+
+    # Keep install and uninstall actions connected to their auxiliary windows.
     setup_window.open_installer.connect(open_app_installer)
     setup_window.open_uninstaller.connect(open_app_uninstaller)
-    setup_window.open_advanced_tweaks.connect(open_advanced_tweaks)
-    setup_window.open_apps_page.connect(open_apps_page)
-    setup_window.open_updates_page.connect(open_updates_page)
-    setup_window.open_network_drives_page.connect(open_network_drives_page)
-    # Show setup window
     setup_window.show()
 
     sys.exit(app.exec_())

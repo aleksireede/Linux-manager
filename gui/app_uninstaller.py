@@ -161,7 +161,9 @@ class AppUninstaller(QMainWindow):
             self.list_widget.addItem(item)
             return
 
-        for category in sorted(grouped_apps, key=str.casefold):
+        for category in sorted(
+            grouped_apps, key=lambda value: (value.casefold() != "uninstall", value.casefold())
+        ):
             add_category_header(
                 self.list_widget, category, category in self.collapsed_categories,
                 self.toggle_category_visibility, self.toggle_category
@@ -172,8 +174,8 @@ class AppUninstaller(QMainWindow):
                 item.setCheckState(
                     Qt.CheckState.Checked if app in self.selected_apps else Qt.CheckState.Unchecked
                 )
-                item.setHidden(category in self.collapsed_categories)
                 self.list_widget.addItem(item)
+                item.setHidden(category in self.collapsed_categories)
 
     def toggle_category_visibility(self, category):
         if category in self.collapsed_categories:
@@ -276,6 +278,8 @@ class AppUninstaller(QMainWindow):
         if self.thread and self.thread.isRunning():
             self.thread.quit()
             self.thread.wait(3000)
+        self.previous_window.show_page(self.previous_window.apps_page_button)
+        self.previous_window.show()
         event.accept()
 
     def start_remove_operation(self, selected_apps):

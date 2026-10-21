@@ -1,29 +1,19 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 try:
-    from .ui_helpers import create_back_button
-    from .theme import configure_main_window, create_page_header
+    from .theme import apply_dark_theme
 except ImportError:
-    from ui_helpers import create_back_button
-    from theme import configure_main_window, create_page_header
+    from theme import apply_dark_theme
 
 
-class NetworkDrivesPage(QMainWindow):
+class NetworkDrivesPage(QWidget):
     def __init__(self, setup_window):
-        super().__init__()
+        super().__init__(setup_window)
         self.setup_window = setup_window
         self.setWindowTitle("Network Drives")
-        configure_main_window(self)
+        apply_dark_theme(self)
 
-        central = QWidget()
-        self.setCentralWidget(central)
-        layout = QVBoxLayout(central)
-        back_button, _, _, _ = create_back_button(self.go_back)
-        layout.addWidget(create_page_header(back_button, "Network Drives"))
+        layout = QVBoxLayout(self)
         layout.addSpacing(16)
         layout.addWidget(setup_window.network_drives_card)
         layout.addStretch()
-
-    def go_back(self):
-        self.setup_window.show()
-        self.hide()

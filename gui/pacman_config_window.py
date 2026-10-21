@@ -26,7 +26,7 @@ from programs.text_editor import (
     pacman_refresh_database,
     pacman_check_database_refreshed,
 )
-from programs.config import PACMAN_REFLECTOR_CONFIG_PATH
+from programs.config import file_reflector_conf
 
 
 class PacmanConfigWindow(QMainWindow):
@@ -121,7 +121,7 @@ class PacmanConfigWindow(QMainWindow):
             return None
 
     def is_reflector_enabled(self):
-        return PACMAN_REFLECTOR_CONFIG_PATH.exists()
+        return file_reflector_conf.exists()
 
     def set_status_icon(self, label: QLabel, enabled):
         apply_status_icon(label, enabled)
