@@ -3,7 +3,7 @@
 import configparser
 import json
 import re
-import subprocess
+import shlex
 import sys
 import tempfile
 import urllib.request
@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from programs.installer_logic import command_exists, package_manager, open_terminal
+from programs.installer_logic import package_manager, open_terminal
 
 
 CATALOG_FILES = ("app.yaml",)
@@ -56,14 +56,21 @@ def load_fedora_repositories():
 def fedora_repository_is_configured(repo):
     repo_dir = Path("/etc/yum.repos.d")
     configured = False
+    expected_baseurl = str(repo.get("baseurl", "")).strip().lower().rstrip("/")
     for repo_file in repo_dir.glob("*.repo"):
         parser = configparser.ConfigParser(interpolation=None)
         try:
             parser.read(repo_file, encoding="utf-8")
         except (OSError, configparser.Error):
             continue
-        if parser.has_section(repo["id"]):
-            section = parser[repo["id"]]
+        for section_id in parser.sections():
+            section = parser[section_id]
+            actual_baseurl = section.get("baseurl", "").strip().lower().rstrip("/")
+            same_repository = section_id == repo["id"] or (
+                expected_baseurl and expected_baseurl in actual_baseurl
+            )
+            if not same_repository:
+                continue
             configured = (
                 section.get("enabled", "1").strip() == "1"
                 and section.get("gpgcheck", "0").strip() == "1"
@@ -71,6 +78,8 @@ def fedora_repository_is_configured(repo):
             )
             if configured:
                 break
+        if configured:
+            break
     # RPM key summaries are vendor supplied and vary across key imports, so
     # matching an owner string against SUMMARY can mark a valid repo missing.
     # The importer separately treats a failed rpm --import as an error.
@@ -117,6 +126,8 @@ def import_fedora_repositories(repositories, progress_callback=None):
     helper_path = Path(__file__).resolve().parent.parent / "scripts" / "install_fedora_repositories.py"
     with tempfile.TemporaryDirectory(prefix="linux-manager-repos-") as temp_directory:
         temp_path = Path(temp_directory)
+        # The privileged helper needs to read the staged manifest and repo files.
+        temp_path.chmod(0o755)
         staged_repositories = []
         keys = []
         for index, repo in enumerate(repositories, 1):
@@ -133,34 +144,27 @@ def import_fedora_repositories(repositories, progress_callback=None):
 
         manifest = temp_path / "manifest.json"
         manifest.write_text(json.dumps({"repositories": staged_repositories, "keys": keys}), encoding="utf-8")
-        helper_command = [sys.executable, str(helper_path), str(manifest)]
-        if command_exists("pkexec"):
-            if progress_callback:
-                progress_callback("Importing signing keys and repository files, then refreshing DNF metadata")
-            process = subprocess.Popen(
-                ["pkexec", *helper_command], stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT, text=True,
-            )
-            try:
-                output, _ = process.communicate(timeout=240)
-            except subprocess.TimeoutExpired as error:
-                process.kill()
-                process.communicate()
-                raise RuntimeError("Repository import timed out.") from error
-            output_tail = [line.strip() for line in output.splitlines() if line.strip()][-15:]
-            if progress_callback:
-                for line in output_tail:
-                    progress_callback(line)
-            return_code = process.returncode
-            if return_code:
-                message = "\n".join(output_tail) or f"pkexec exited with status {return_code}."
-                raise RuntimeError(message)
-            return "\n".join(output_tail) or "Repositories and signing keys imported."
-
         if progress_callback:
-            progress_callback("Waiting for the administrator password in the terminal")
-        process = open_terminal(["sudo", *helper_command])
-        return_code = process.wait(timeout=240)
+            progress_callback("Importing repositories and signing keys in the external terminal")
+        helper_command = ["sudo", sys.executable, str(helper_path), str(manifest)]
+        terminal_script = temp_path / "import-repositories.sh"
+        terminal_script.write_text(
+            "#!/usr/bin/env bash\n"
+            "set +e\n"
+            f"{shlex.join(helper_command)}\n"
+            "status=$?\n"
+            'if (( status == 0 )); then\n'
+            '    printf "\\nRepository import completed successfully.\\n"\n'
+            "else\n"
+            '    printf "\\nRepository import failed with status %s.\\n" "$status"\n'
+            "fi\n"
+            'read -r -p "Press Enter to close this terminal." _\n'
+            "exit \"$status\"\n",
+            encoding="utf-8",
+        )
+        terminal_script.chmod(0o700)
+        process = open_terminal([str(terminal_script)])
+        return_code = process.wait()
         if return_code:
             raise RuntimeError(f"Repository import terminal exited with status {return_code}.")
-        return "Repository import command finished."
+        return "Repositories and signing keys imported successfully. See the external terminal for command output."

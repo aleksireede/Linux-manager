@@ -1,14 +1,14 @@
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QIcon, QPainter, QPixmap
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QMessageBox, QInputDialog, QHBoxLayout, \
     QListWidgetItem, QLabel, QComboBox, QLineEdit, QDialogButtonBox, QCheckBox
 
 from programs.apps_file import (
     add_app_to_yaml, load_yaml, remove_app_from_yaml, set_apps_category, update_app_in_yaml,
 )
-from programs.installer_logic import is_fedora, arch_app_name, fedora_app_name
+from programs.installer_logic import arch_app_name, fedora_app_name
 try:
     from .theme import configure_dialog
     from .category_list import add_category_header
@@ -28,9 +28,10 @@ class AppListEditorDialog(QDialog):
         self.collapsed_categories = set()
         self.category_apps = {}
         self.search_icon_path = Path(__file__).resolve().parent.parent.joinpath("icons", "search.svg")
-        self.is_fedora = is_fedora()
-        self.distro_icon_path = Path(__file__).resolve().parent.parent.joinpath(
-            "icons", "fedora_logo.svg" if self.is_fedora else "arch_logo.svg"
+        icon_dir = Path(__file__).resolve().parent.parent / "icons"
+        self.distro_icons = (
+            ("Arch", arch_app_name, icon_dir / "arch_logo.svg"),
+            ("Fedora", fedora_app_name, icon_dir / "fedora_logo.svg"),
         )
 
         # use vertical box layout
@@ -40,6 +41,7 @@ class AppListEditorDialog(QDialog):
 
         # List widget
         self.list_widget = QListWidget(self)
+        self.list_widget.setIconSize(QSize(38, 20))
         self.populate_list()
 
         # Add button
@@ -115,11 +117,32 @@ class AppListEditorDialog(QDialog):
             for app in sorted(grouped[category], key=str.casefold):
                 item = QListWidgetItem(app)
                 item.setData(Qt.ItemDataRole.UserRole, app)
-                entry = entries_by_name.get(app, {})
-                package_name = fedora_app_name(app) if self.is_fedora else arch_app_name(app)
-                source_label = "Fedora package" if self.is_fedora else entry.get("source", "Arch package")
-                item.setIcon(QIcon(str(self.distro_icon_path)))
-                item.setToolTip(f"{source_label}: {package_name or 'not configured'}")
+                configured_distros = [
+                    (distro, package_name, icon_path)
+                    for distro, resolve_package, icon_path in self.distro_icons
+                    if (package_name := resolve_package(app))
+                    and str(package_name).strip()
+                ]
+                if configured_distros:
+                    icon_size = 18
+                    spacing = 2
+                    combined_icon = QPixmap(
+                        len(configured_distros) * icon_size + (len(configured_distros) - 1) * spacing,
+                        icon_size,
+                    )
+                    combined_icon.fill(Qt.transparent)
+                    painter = QPainter(combined_icon)
+                    for icon_index, (_, _, icon_path) in enumerate(configured_distros):
+                        pixmap = QIcon(str(icon_path)).pixmap(icon_size, icon_size)
+                        painter.drawPixmap(icon_index * (icon_size + spacing), 0, pixmap)
+                    painter.end()
+                    item.setIcon(QIcon(combined_icon))
+                item.setToolTip(
+                    "\n".join(
+                        f"{distro} package: {package_name}"
+                        for distro, package_name, _ in configured_distros
+                    ) or "No distro package configured"
+                )
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(Qt.CheckState.Unchecked)
                 self.list_widget.addItem(item)

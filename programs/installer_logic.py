@@ -170,25 +170,30 @@ def _fedora_repository_ready(app_name):
     expected_key = str(record.get("fedora_gpg_key", "")).lower()
     if not expected_key:
         return False
+    expected_baseurl = str(record.get("fedora_repo_baseurl", "")).strip().lower().rstrip("/")
 
-    repo_enabled = False
-    repo_key_matches = False
     for repo_file in Path("/etc/yum.repos.d").glob("*.repo"):
         parser = configparser.ConfigParser()
         try:
             parser.read(repo_file, encoding="utf-8")
         except (OSError, configparser.Error):
             continue
-        if not parser.has_section(str(repo_id)):
-            continue
-        section = parser[str(repo_id)]
-        repo_enabled = section.get("enabled", "1").strip() == "1"
-        repo_key_matches = expected_key in section.get("gpgkey", "").lower()
-        if repo_enabled and section.get("gpgcheck", "0").strip() == "1" and repo_key_matches:
-            break
-        repo_enabled = False
+        for section_id in parser.sections():
+            section = parser[section_id]
+            actual_baseurl = section.get("baseurl", "").strip().lower().rstrip("/")
+            if section_id == str(repo_id) or (
+                expected_baseurl and expected_baseurl in actual_baseurl
+            ):
+                # COPR's own enable command uses a canonical section ID,
+                # which differs from our catalog ID. Match it by repository URL.
+                if (
+                    section.get("enabled", "1").strip() == "1"
+                    and section.get("gpgcheck", "0").strip() == "1"
+                    and expected_key in section.get("gpgkey", "").lower()
+                ):
+                    return True
 
-    return repo_enabled and repo_key_matches
+    return False
 
 
 def fedora_packages_available(app_names):
@@ -539,6 +544,18 @@ def app_install(apps, command: str):
             elif conflict_policy == "skip":
                 command_line.extend(["-y", "--skip-broken"])
             command_line.extend(fedora_apps)
+            catalog_apps = apps if isinstance(apps, list) else [apps]
+            copr_ids = list(dict.fromkeys(
+                str(_fedora_app_records().get(app, {}).get("fedora_copr_id", "")).strip()
+                for app in catalog_apps
+                if _fedora_app_records().get(app, {}).get("fedora_copr_id")
+            ))
+            if copr_ids:
+                commands = [
+                    [auth_command, package_manager(), "copr", "enable", copr_id]
+                    for copr_id in copr_ids
+                ] + [command_line]
+                return _run_interactive_commands(commands)
             if conflict_policy == "ask":
                 return _run_interactive_command(command_line)
             if auth_command == "sudo":
@@ -611,10 +628,16 @@ def _install_packages_interactively(packages, command):
 def _run_interactive_command(command):
     """Run an interactive command and keep its terminal visible until acknowledged."""
 
+    return _run_interactive_commands([command])
+
+
+def _run_interactive_commands(commands):
+    """Run ordered interactive commands in one terminal, stopping on failure."""
+
     script = (
         "#!/usr/bin/env bash\n"
         'trap \'rm -f -- "$0"\' EXIT\n'
-        f"{shlex.join(command)}\n"
+        + " && ".join(shlex.join(command) for command in commands) + "\n"
         'status=$?\n'
         'if (( status != 0 )); then\n'
         '    printf "\\nInstallation command exited with status %s. Press Enter to close this terminal." "$status"\n'

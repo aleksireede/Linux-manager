@@ -11,7 +11,7 @@
   category: Terminal Emulator
   conflicts: []
   arch_app_name: alacritty
-  fedora_app_name: null
+  fedora_app_name: alacritty
 - name: Aur auto vote
   description: Default description for Aur auto vote
   source: paru
@@ -25,14 +25,14 @@
   category: Terminal Emulator
   conflicts: []
   arch_app_name: bash
-  fedora_app_name: null
+  fedora_app_name: bash
 - name: Bat(cat)
   description: Default description for Bat(cat)
   source: paru
   category: Utilities
   conflicts: []
   arch_app_name: bat-cat-git
-  fedora_app_name: null
+  fedora_app_name: bat
 - name: Brave Browser
   title: Brave Browser
   description: Chromium-based browser with built-in privacy defaults from the AUR.
@@ -90,6 +90,13 @@
   title: Firefox
   icon_url: https://www.firefox.com/media/img/favicons/firefox/browser/favicon-196x196.59e3822720be.png
   arch_app_name: firefox
+- name: Gimp
+  description: Default description for gimp
+  source: pacman
+  category: Applications
+  conflicts: []
+  fedora_app_name: gimp
+  arch_app_name: gimp
 - name: Gnome terminal (kgx)
   description: Default description for Gnome terminal
   source: pacman
@@ -116,20 +123,70 @@
   - hyperterm
   arch_app_name: hyper
   fedora_app_name: null
+- name: Keepassxc
+  description: Default description for keepassxc
+  source: pacman
+  category: Applications
+  conflicts: []
+  fedora_app_name: keepassxc
+  arch_app_name: keepassxc
 - name: LXDE terminal
   description: Default description for LXDE terminal
   source: pacman
   category: Terminal Emulator
   conflicts: []
   arch_app_name: lxterminal
-  fedora_app_name: null
+  fedora_app_name: lxterminal
+- name: Libreoffice
+  description: Default description for libreoffice-fresh
+  source: pacman
+  category: Applications
+  conflicts: []
+  fedora_app_name: libreoffice
+  arch_app_name: libreoffice-fresh
+- name: Localsend
+  title: LocalSend
+  description: Share files with nearby devices over your local network.
+  source: pacman
+  category: Applications
+  conflicts: []
+  arch_app_name: localsend-bin
+  fedora_app_name: localsend
+  fedora_copr_id: lamoustacheauchocolat/Localsend
+  fedora_repo_id: lamoustacheauchocolat-Localsend
+  fedora_repo_name: LocalSend (COPR)
+  fedora_repo_baseurl: https://download.copr.fedorainfracloud.org/results/lamoustacheauchocolat/Localsend/fedora-$releasever-$basearch/
+  fedora_gpg_key: https://download.copr.fedorainfracloud.org/results/lamoustacheauchocolat/Localsend/pubkey.gpg
+  fedora_gpg_key_owner: lamoustacheauchocolat
 - name: Mate terminal
   description: Default description for Mate terminal
   source: pacman
   category: Terminal Emulator
   conflicts: []
   arch_app_name: mate-terminal
-  fedora_app_name: null
+  fedora_app_name: mate-terminal
+- name: Mission Center
+  description: Default description for mission-center
+  source: pacman
+  category: Applications
+  conflicts: []
+  fedora_app_name: missioncenter
+  arch_app_name: mission-center
+- name: NetPeek
+  title: NetPeek
+  description: A modern GTK network scanner for discovering active devices on a local
+    network.
+  source: paru
+  category: Network
+  conflicts: []
+  arch_app_name: netpeek
+  fedora_app_name: netpeek
+  fedora_repo_id: infiniti151-flatpak-apps
+  fedora_repo_name: NetPeek (COPR)
+  fedora_repo_baseurl: https://download.copr.fedorainfracloud.org/results/infiniti151/flatpak-apps/fedora-$releasever-$basearch/
+  fedora_gpg_key: https://download.copr.fedorainfracloud.org/results/infiniti151/flatpak-apps/pubkey.gpg
+  fedora_gpg_key_owner: infiniti151
+  icon_url: https://raw.githubusercontent.com/ZingyTomato/NetPeek/main/data/icons/hicolor/scalable/apps/io.github.zingytomato.netpeek.svg
 - name: Opera
   description: Chromium-based browser with built-in messaging and VPN features.
   source: paru
@@ -139,6 +196,28 @@
   title: Opera
   icon_url: https://cdn-production-opera-website.operacdn.com/staticfiles/assets/images/favicon/opera/apple-touch-icon-180x180.00d9278d6de6.png
   arch_app_name: opera
+- name: Qbittorrent
+  description: Default description for qbittorrent
+  source: pacman
+  category: Applications
+  conflicts: []
+  fedora_app_name: qbittorrent
+  arch_app_name: qbittorrent
+- name: Spotify
+  title: Spotify
+  description: Music streaming desktop client from the zicstardust COPR repository.
+  source: paru
+  category: Music
+  conflicts:
+  - spotify
+  arch_app_name: spotify-launcher
+  fedora_app_name: spotify-client
+  fedora_copr_id: zicstardust/spotify-client
+  fedora_repo_id: zicstardust-spotify-client
+  fedora_repo_name: Spotify (COPR)
+  fedora_repo_baseurl: https://download.copr.fedorainfracloud.org/results/zicstardust/spotify-client/fedora-$releasever-$basearch/
+  fedora_gpg_key: https://download.copr.fedorainfracloud.org/results/zicstardust/spotify-client/pubkey.gpg
+  fedora_gpg_key_owner: zicstardust
 - name: Tor Browser
   description: Tor Browser bundle packaged for Arch through the AUR.
   source: paru
@@ -148,6 +227,13 @@
   title: Tor Browser
   icon_url: https://www.torproject.org/static/images/favicon/favicon.png
   arch_app_name: tor-browser-bin
+- name: Ugrep
+  description: Default description for Ugrep
+  source: pacman
+  category: System utils
+  conflicts: []
+  arch_app_name: ugrep
+  fedora_app_name: ugrep
 - name: Vivaldi
   description: Feature-heavy Chromium-based browser package from the Arch repositories.
   source: pacman
@@ -163,7 +249,7 @@
   category: Terminal Emulator
   conflicts: []
   arch_app_name: zsh
-  fedora_app_name: null
+  fedora_app_name: zsh
 - name: alsa-plugins
   description: Default description for alsa-plugins
   source: Unknown
@@ -368,12 +454,6 @@
   category: System utils
   conflicts: []
   fedora_app_name: giflib
-- name: gimp
-  description: Default description for gimp
-  source: Unknown
-  category: Applications
-  conflicts: []
-  fedora_app_name: gimp
 - name: git
   description: Default description for git
   source: Unknown
@@ -455,12 +535,6 @@
   category: KDE
   conflicts: []
   fedora_app_name: kdegraphics-thumbnailers
-- name: keepassxc
-  description: Default description for keepassxc
-  source: Unknown
-  category: Applications
-  conflicts: []
-  fedora_app_name: keepassxc
 - name: kimageformats
   description: Default description for kimageformats
   source: pacman
@@ -629,12 +703,6 @@
   category: System utils
   conflicts: []
   fedora_app_name: libjpeg-turbo
-- name: libreoffice-fresh
-  description: Default description for libreoffice-fresh
-  source: Unknown
-  category: Applications
-  conflicts: []
-  fedora_app_name: libreoffice
 - name: linux-firmware-amdgpu
   description: Default description for linux-firmware-amdgpu
   source: Unknown
@@ -659,12 +727,6 @@
   category: System utils
   conflicts: []
   fedora_app_name: lm_sensors
-- name: localsend-bin
-  description: Default description for localsend-bin
-  source: Unknown
-  category: Applications
-  conflicts: []
-  fedora_app_name: null
 - name: lolcat
   description: Default description for lolcat
   source: pacman
@@ -725,12 +787,6 @@
   category: Graphics
   conflicts: []
   fedora_app_name: mesa-demos
-- name: mission-center
-  description: Default description for mission-center
-  source: Unknown
-  category: Applications
-  conflicts: []
-  fedora_app_name: null
 - name: nmap
   description: Default description for nmap
   source: pacman
@@ -913,7 +969,7 @@
   source: paru
   category: Games
   conflicts: []
-  fedora_app_name: null
+  fedora_app_name: protonplus
 - name: protontricks
   description: Default description for protontricks
   source: pacman
@@ -950,12 +1006,6 @@
   category: Utilities
   conflicts: []
   fedora_app_name: python3-setuptools
-- name: qbittorrent
-  description: Default description for qbittorrent
-  source: Unknown
-  category: Applications
-  conflicts: []
-  fedora_app_name: qbittorrent
 - name: qt6-multimedia
   description: Default description for qt6-multimedia
   source: pacman
@@ -1029,12 +1079,6 @@
   category: KDE
   conflicts: []
   fedora_app_name: spectacle
-- name: spotify-launcher
-  description: Default description for spotify-launcher
-  source: pacman
-  category: Applications
-  conflicts: []
-  fedora_app_name: null
 - name: steam
   description: Valve launcher and storefront for PC games.
   source: pacman
@@ -1103,7 +1147,7 @@
   source: paru
   category: Graphics
   conflicts: []
-  fedora_app_name: null
+  fedora_app_name: vkbasalt
 - name: vulkan-radeon
   description: Default description for vulkan-radeon
   source: pacman
@@ -1143,6 +1187,6 @@
 - name: zenmap
   description: Default description for zenmap
   source: pacman
-  category: Utilities
+  category: Uninstall
   conflicts: []
   fedora_app_name: null
