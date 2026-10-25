@@ -61,8 +61,10 @@ class UpdateCheckWorker(QObject):
         try:
             latest_tag = self.fetch_latest_release_tag()
             current_version = self.get_current_version()
+            comparable_current = current_version[1:] if current_version.startswith("v") else current_version
+            comparable_latest = latest_tag[1:] if latest_tag.startswith("v") else latest_tag
 
-            if current_version == latest_tag:
+            if comparable_current == comparable_latest:
                 status_text = f"Up to date ({latest_tag})"
                 update_available = False
             elif current_version == "unknown":
@@ -90,6 +92,24 @@ class UpdateCheckWorker(QObject):
     @staticmethod
     def get_current_version():
         repo_root = Path(__file__).resolve().parent.parent
+        version_file = repo_root / "VERSION"
+        try:
+            version = version_file.read_text(encoding="utf-8").strip()
+            if version:
+                return version
+        except OSError:
+            pass
+
+        if shutil.which("rpm"):
+            try:
+                return subprocess.check_output(
+                    ["rpm", "-q", "--qf", "%{VERSION}", "linux-manager"],
+                    stderr=subprocess.DEVNULL,
+                    text=True,
+                ).strip()
+            except subprocess.CalledProcessError:
+                pass
+
         try:
             return subprocess.check_output(
                 ["git", "-C", str(repo_root), "describe", "--tags", "--exact-match"],
