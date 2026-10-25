@@ -72,6 +72,8 @@ if [[ -n "$LATEST_TAG" ]]; then
   echo "Updating to release tag: $LATEST_TAG"
   git -C "$INSTALL_DIR" fetch --tags --quiet
   git -C "$INSTALL_DIR" checkout --quiet "$LATEST_TAG"
+  printf '%s\n' "${LATEST_TAG#v}" | run_root tee "$INSTALL_DIR/VERSION" >/dev/null
+  run_root chown "$USER_NAME:$USER_GROUP" "$INSTALL_DIR/VERSION"
 else
   echo "Could not resolve latest release tag; pulling current branch."
   git -C "$INSTALL_DIR" pull --ff-only || true

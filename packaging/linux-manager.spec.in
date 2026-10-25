@@ -31,6 +31,7 @@ install -d %{buildroot}/opt/linux-manager
 cp -a bin gui icons main programs scripts %{buildroot}/opt/linux-manager/
 install -Dm644 README.md %{buildroot}/opt/linux-manager/README.md
 install -Dm644 LICENSE %{buildroot}/opt/linux-manager/LICENSE
+printf '%s\n' '%{version}' > %{buildroot}/opt/linux-manager/VERSION
 
 install -d %{buildroot}%{_bindir}
 cat > %{buildroot}%{_bindir}/linux-manager <<'EOF'

@@ -14,6 +14,40 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
+if command -v rpm >/dev/null 2>&1 && rpm -q linux-manager >/dev/null 2>&1; then
+  CURRENT_VERSION="$(rpm -q --qf '%{VERSION}' linux-manager)"
+  LATEST_TAG="$(git ls-remote --tags --refs "$REPO_URL" | sed 's#.*refs/tags/##' | sort -V | tail -n1)"
+  if [[ -z "$LATEST_TAG" ]]; then
+    echo "Unable to resolve the latest version tag from GitHub."
+    exit 1
+  fi
+  LATEST_VERSION="${LATEST_TAG#v}"
+  echo "Installed RPM version: $CURRENT_VERSION"
+  echo "Latest release:       $LATEST_VERSION"
+  if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+    echo "Already up to date."
+    exit 0
+  fi
+  if [[ "$(printf '%s\n' "$CURRENT_VERSION" "$LATEST_VERSION" | sort -V | tail -n1)" == "$CURRENT_VERSION" ]]; then
+    echo "Installed version $CURRENT_VERSION is newer than $LATEST_VERSION; skipping downgrade."
+    exit 0
+  fi
+  RPM_FILE="linux-manager-${LATEST_VERSION}-1.noarch.rpm"
+  RPM_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${LATEST_TAG}/${RPM_FILE}"
+  TEMP_RPM="$(mktemp --suffix=.rpm)"
+  trap 'rm -f "$TEMP_RPM"' EXIT
+  curl -fL "$RPM_URL" -o "$TEMP_RPM"
+  if command -v dnf5 >/dev/null 2>&1; then
+    if [[ "$EUID" -eq 0 ]]; then dnf5 install -y "$TEMP_RPM"; else sudo dnf5 install -y "$TEMP_RPM"; fi
+  elif command -v dnf >/dev/null 2>&1; then
+    if [[ "$EUID" -eq 0 ]]; then dnf install -y "$TEMP_RPM"; else sudo dnf install -y "$TEMP_RPM"; fi
+  else
+    echo "DNF or DNF5 is required to update the Fedora RPM."
+    exit 1
+  fi
+  exit 0
+fi
+
 if [[ ! -d "$INSTALL_DIR/.git" ]]; then
   echo "Install not found at $INSTALL_DIR. Run setup first."
   exit 1
@@ -61,6 +95,7 @@ if ! git -C "$INSTALL_DIR" rev-parse --verify --quiet "refs/tags/$LATEST_TAG^{co
   exit 1
 fi
 git -C "$INSTALL_DIR" checkout --detach "$LATEST_TAG"
+printf '%s\n' "${LATEST_TAG#v}" > "$INSTALL_DIR/VERSION"
 
 CHECKED_OUT_TAG="$(git -C "$INSTALL_DIR" describe --tags --exact-match 2>/dev/null || echo "unknown")"
 if [[ "$CHECKED_OUT_TAG" != "$LATEST_TAG" ]]; then

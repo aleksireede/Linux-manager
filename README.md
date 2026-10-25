@@ -17,6 +17,8 @@ wget -qO- https://raw.githubusercontent.com/aleksireede/arch-mysetup/refs/heads/
 
 The setup script installs the system dependencies on Arch or Fedora (DNF and DNF5), installs Linux-Manager under `/opt/linux-manager`, and creates the `linux-manager` and `linux-manager-update` commands. It also installs the application menu entry and icon, then starts the application when setup completes. The updater refreshes the launcher, menu entry, and icon after updating the app.
 
+Fedora RPMs are versioned from the matching Git release tag. The `linux-manager-update` command updates an RPM installation through DNF or DNF5, and RPM releases install over the same `/opt/linux-manager` files used by the setup command. Both installation methods record the installed application version in `/opt/linux-manager/VERSION`.
+
 ## Run and update
 
 Start Linux-Manager from your application menu or run:
